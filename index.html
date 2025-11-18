@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arctic Assault - Unlocked</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            overflow: hidden;
+            touch-action: none;
+            background-color: #111827;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 850px;
+            margin: 0 auto;
+            background-color: #000;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #c0d8e8;
+        }
+
+        /* GIOCATORE SVG */
+        #playerEntity {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            filter: drop-shadow(0 4px 2px rgba(0,0,0,0.3));
+        }
+
+        /* MENU OVERLAY */
+        #menuOverlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(17, 24, 39, 0.95);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #16a34a, #15803d);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            border: 2px solid #bbf7d0;
+            margin: 8px 0;
+            cursor: pointer;
+            width: 100%;
+            max-width: 280px;
+            box-shadow: 0 4px 0 #14532d, 0 5px 10px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 #14532d; }
+        
+        .btn-purple { background: linear-gradient(to bottom, #9333ea, #7e22ce); border-color: #e9d5ff; box-shadow: 0 4px 0 #581c87; }
+        .btn-purple:active { box-shadow: 0 0 0 #581c87; }
+
+        .btn-red { background: linear-gradient(to bottom, #ef4444, #b91c1c); border-color: #fecaca; box-shadow: 0 4px 0 #7f1d1d; }
+        .btn-red:active { box-shadow: 0 0 0 #7f1d1d; }
+        
+        .btn-yellow { background: linear-gradient(to bottom, #eab308, #ca8a04); border-color: #fef08a; box-shadow: 0 4px 0 #854d0e; color: black; }
+        .btn-yellow:active { box-shadow: 0 0 0 #854d0e; }
+
+        /* UI HUD */
+        .hud-bar {
+            position: absolute;
+            top: 10px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 20;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        #bossBarContainer {
+            position: absolute;
+            top: 50px; left: 20px; right: 20px;
+            height: 12px;
+            background: #374151;
+            border-radius: 6px;
+            border: 2px solid #000;
+            z-index: 15;
+            display: none;
+        }
+        #bossBarFill {
+            height: 100%;
+            background: #dc2626;
+            width: 100%;
+            border-radius: 4px;
+            transition: width 0.2s;
+        }
+
+        /* SCHERMATA PERK */
+        #perksPanel {
+            width: 100%;
+            max-width: 350px;
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 16px;
+            padding: 10px;
+            margin-top: 15px;
+            max-height: 50vh;
+            overflow-y: auto;
+            border: 1px solid #374151;
+        }
+        
+        .perk-card {
+            background: #374151;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #4b5563;
+        }
+        .perk-info { text-align: left; flex: 1; }
+        .perk-name { font-weight: bold; color: #fbbf24; font-size: 14px; }
+        .perk-desc { font-size: 11px; color: #9ca3af; }
+        .perk-dots { display: flex; gap: 3px; margin-top: 4px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #4b5563; }
+        .dot.active { background: #fbbf24; }
+        
+        .buy-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px #1e40af;
+            transition: background-color 0.2s;
+        }
+        .buy-btn:active { transform: translateY(2px); box-shadow: none; }
+        .buy-btn.maxed { background: #10b981; pointer-events: none; box-shadow: none; }
+        .buy-btn.poor { background: #4b5563; color: #9ca3af; } /* Grigio ma cliccabile per feedback */
+        .buy-btn.error { background: #ef4444 !important; } /* Rosso errore */
+
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="450" height="800"></canvas>
+        
+        <!-- GIOCATORE SVG -->
+        <div id="playerEntity">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="#15803d" stroke="#052e16" stroke-width="3"/>
+                <path d="M10 50 Q50 5 90 50" fill="#166534" stroke="#052e16" stroke-width="3"/>
+                <rect x="40" y="20" width="20" height="20" fill="#fbbf24" rx="2"/>
+                <rect x="25" y="50" width="50" height="35" fill="#fca5a5" rx="5"/>
+                <rect x="25" y="55" width="50" height="15" fill="#111827" rx="2"/>
+                <circle cx="35" cy="62" r="3" fill="rgba(255,255,255,0.5)"/>
+                <circle cx="65" cy="62" r="3" fill="rgba(255,255,255,0.5)"/>
+            </svg>
+        </div>
+
+        <div class="hud-bar">
+            <span class="text-yellow-400" id="scoreDisplay">💎 0</span>
+            <span class="text-red-400" id="hpDisplay">❤️ 10</span>
+            <span class="text-blue-300" id="distDisplay">📏 0m</span>
+        </div>
+
+        <div id="bossBarContainer">
+            <div id="bossBarFill"></div>
+        </div>
+
+        <div id="menuOverlay">
+            <div class="mb-6">
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-lg">ARCTIC<br>ASSAULT</h1>
+                <p class="text-sm text-gray-400 mt-2">Soldier Edition</p>
+            </div>
+
+            <div id="mainMenuButtons" class="w-full flex flex-col items-center">
+                <button class="btn" onclick="startGame()">GIOCA ORA</button>
+                <button class="btn btn-purple" onclick="openPerks()">POTENZIAMENTI</button>
+                <p class="text-xs text-gray-500 mt-4">Trascina il dito per muoverti.</p>
+            </div>
+
+            <div id="perksMenu" class="hidden w-full flex flex-col items-center">
+                <h2 class="text-xl font-bold text-yellow-400 mb-2">NEGOZIO PERK</h2>
+                <p class="text-sm text-gray-300 mb-2">Punti: <span id="perkPoints" class="font-bold text-white">0</span></p>
+                
+                <div id="perksPanel"></div>
+                
+                <!-- Bottone Cheat -->
+                <button class="btn btn-yellow mt-4 py-2 text-sm" onclick="addMoney()">💰 AGGIUNGI 500 PUNTI</button>
+                <button class="btn btn-red mt-2" onclick="closePerks()">INDIETRO</button>
+            </div>
+
+            <div id="gameOverMenu" class="hidden text-center">
+                <h2 class="text-3xl font-bold text-red-500 mb-2">MISSIONE FALLITA</h2>
+                <p class="text-lg text-white mb-6" id="finalScore">Punti: 0</p>
+                <button class="btn" onclick="startGame()">RIPROVA</button>
+                <button class="btn btn-purple" onclick="openPerks()">NEGOZIO</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const playerEntity = document.getElementById('playerEntity');
+        
+        const menuOverlay = document.getElementById('menuOverlay');
+        const mainMenuButtons = document.getElementById('mainMenuButtons');
+        const perksMenu = document.getElementById('perksMenu');
+        const gameOverMenu = document.getElementById('gameOverMenu');
+        const perkPointsDisplay = document.getElementById('perkPoints');
+        const perksPanel = document.getElementById('perksPanel');
+        
+        const GW = 450;
+        const GH = 800;
+
+        const PERKS = [
+            { id: 'rapid', name: 'Rapid Fire', desc: 'Spara più veloce', cost: 100, max: 5, val: (lvl) => 250 - (lvl*30) },
+            { id: 'health', name: 'Toughness', desc: 'Salute iniziale extra', cost: 150, max: 5, val: (lvl) => 10 + (lvl*5) },
+            { id: 'speed', name: 'Scout', desc: 'Velocità movimento', cost: 100, max: 3, val: (lvl) => 300 + (lvl*50) },
+            { id: 'magnet', name: 'Magnet', desc: 'Raggio raccolta', cost: 120, max: 4, val: (lvl) => 40 + (lvl*20) },
+            { id: 'greed', name: 'Greed', desc: 'Moltiplicatore punti', cost: 200, max: 3, val: (lvl) => 1 + (lvl*0.5) }
+        ];
+
+        // CARICAMENTO DATI CON BONUS DI BENVENUTO
+        let savedData = JSON.parse(localStorage.getItem('arctic_save')) || { score: 2000, levels: {} }; // Bonus 2000 per test
+        PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
+
+        let game = {
+            running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
+            player: { x: GW/2, y: GH*0.75 },
+            enemies: [], bullets: [], powerups: [], bossBullets: [], boss: null,
+            nextBossDist: 1000, lastTime: 0, fireTimer: 0,
+            fireRate: 250, moveSpeed: 300, pickupRad: 40, scoreMult: 1
+        };
+
+        function saveGame() {
+            savedData.score = Math.floor(savedData.score);
+            localStorage.setItem('arctic_save', JSON.stringify(savedData));
+        }
+
+        function applyPerks() {
+            game.fireRate = PERKS[0].val(savedData.levels['rapid']);
+            game.maxHp = PERKS[1].val(savedData.levels['health']);
+            game.moveSpeed = PERKS[2].val(savedData.levels['speed']);
+            game.pickupRad = PERKS[3].val(savedData.levels['magnet']);
+            game.scoreMult = PERKS[4].val(savedData.levels['greed']);
+            game.hp = game.maxHp;
+        }
+
+        function renderPerksList() {
+            perkPointsDisplay.innerText = Math.floor(savedData.score);
+            perksPanel.innerHTML = '';
+
+            PERKS.forEach(p => {
+                let lvl = savedData.levels[p.id];
+                let cost = p.cost * (lvl + 1);
+                let isMax = lvl >= p.max;
+                let canAfford = savedData.score >= cost;
+                
+                let dots = '';
+                for(let i=0; i<p.max; i++) dots += `<div class="dot ${i<lvl ? 'active' : ''}"></div>`;
+
+                // Logica per stile bottone
+                let btnClass = 'buy-btn';
+                if (isMax) btnClass += ' maxed';
+                else if (!canAfford) btnClass += ' poor';
+                
+                let btnText = isMax ? 'MAX' : cost;
+
+                let card = document.createElement('div');
+                card.className = 'perk-card';
+                card.innerHTML = `
+                    <div class="perk-info">
+                        <div class="perk-name">${p.name} <span style="color:white; font-weight:normal">Lv.${lvl}</span></div>
+                        <div class="perk-desc">${p.desc}</div>
+                        <div class="perk-dots">${dots}</div>
+                    </div>
+                    <button id="btn-${p.id}" class="${btnClass}" onclick="buyPerk('${p.id}')">${btnText}</button>
+                `;
+                perksPanel.appendChild(card);
+            });
+        }
+
+        window.buyPerk = function(id) {
+            let p = PERKS.find(x => x.id === id);
+            let lvl = savedData.levels[id];
+            let cost = p.cost * (lvl + 1);
+            let btn = document.getElementById(`btn-${id}`);
+
+            if (lvl < p.max) {
+                if (savedData.score >= cost) {
+                    // Successo
+                    savedData.score -= cost;
+                    savedData.levels[id]++;
+                    saveGame();
+                    renderPerksList();
+                } else {
+                    // Fallito (Feedback visivo rosso)
+                    if(btn) {
+                        let originalText = btn.innerText;
+                        btn.classList.add('error');
+                        btn.innerText = "NO CASH";
+                        setTimeout(() => {
+                            btn.classList.remove('error');
+                            btn.innerText = originalText;
+                        }, 500);
+                    }
+                }
+            }
+        };
+        
+        window.addMoney = function() {
+            savedData.score += 500;
+            saveGame();
+            renderPerksList();
+        };
+
+        window.openPerks = function() {
+            mainMenuButtons.classList.add('hidden');
+            gameOverMenu.classList.add('hidden');
+            perksMenu.classList.remove('hidden');
+            renderPerksList();
+        };
+
+        window.closePerks = function() {
+            perksMenu.classList.add('hidden');
+            mainMenuButtons.classList.remove('hidden');
+        };
+
+        window.startGame = function() {
+            applyPerks();
+            game.running = true;
+            game.score = 0;
+            game.dist = 0;
+            game.player.x = GW/2; 
+            game.player.y = GH*0.75;
+            game.enemies = [];
+            game.bullets = [];
+            game.bossBullets = [];
+            game.powerups = [];
+            game.boss = null;
+            game.nextBossDist = 1000;
+            game.lastTime = performance.now();
+
+            menuOverlay.style.display = 'none';
+            mainMenuButtons.classList.remove('hidden');
+            gameOverMenu.classList.add('hidden');
+            perksMenu.classList.add('hidden');
+            
+            playerEntity.style.display = 'block';
+            document.getElementById('bossBarContainer').style.display = 'none';
+            
+            requestAnimationFrame(loop);
+        };
+
+        function gameOver() {
+            game.running = false;
+            savedData.score += game.score;
+            saveGame();
+
+            menuOverlay.style.display = 'flex';
+            mainMenuButtons.classList.add('hidden');
+            perksMenu.classList.add('hidden');
+            gameOverMenu.classList.remove('hidden');
+            document.getElementById('finalScore').innerText = "Punti: " + Math.floor(game.score);
+            playerEntity.style.display = 'none';
+        }
+
+        function update(dt) {
+            if(!game.running) return;
+
+            game.dist += dt * 10;
+            let scrollSpeed = 150 * dt;
+
+            if (!game.boss) {
+                if (Math.random() < 0.03) {
+                    let isHeavy = Math.random() > 0.8;
+                    game.enemies.push({
+                        x: Math.random() * (GW - 40) + 20, y: -50,
+                        type: isHeavy ? 'heavy' : 'grunt',
+                        hp: isHeavy ? 4 : 1,
+                        w: isHeavy ? 40 : 30, h: isHeavy ? 40 : 30,
+                        color: isHeavy ? '#880E4F' : '#DC2626',
+                        score: isHeavy ? 20 : 10
+                    });
+                }
+                if (Math.random() < 0.005) {
+                    let type = Math.random() > 0.5 ? 'hp' : 'coin';
+                    game.powerups.push({
+                        x: Math.random() * (GW - 40) + 20, y: -50,
+                        type: type,
+                        color: type === 'hp' ? '#EF4444' : '#FBBF24',
+                        label: type === 'hp' ? '❤️' : '💎'
+                    });
+                }
+            }
+
+            if (game.dist > game.nextBossDist && !game.boss) {
+                game.boss = { x: GW/2, y: -100, w: 100, h: 100, hp: 100, maxHp: 100, dir: 1, shootTimer: 0 };
+                document.getElementById('bossBarContainer').style.display = 'block';
+            }
+
+            if (game.boss) {
+                let b = game.boss;
+                if (b.y < 100) b.y += 50 * dt;
+                b.x += 50 * b.dir * dt;
+                if (b.x > GW - 60 || b.x < 60) b.dir *= -1;
+
+                if (Date.now() - b.shootTimer > 1500) {
+                    let angle = Math.atan2(game.player.y - b.y, game.player.x - b.x);
+                    game.bossBullets.push({ x: b.x, y: b.y + 50, dx: Math.cos(angle), dy: Math.sin(angle) });
+                    b.shootTimer = Date.now();
+                }
+                document.getElementById('bossBarFill').style.width = Math.max(0, (b.hp / b.maxHp) * 100) + '%';
+            }
+
+            game.enemies.forEach(e => e.y += scrollSpeed);
+            game.enemies = game.enemies.filter(e => e.y < GH + 50);
+            game.powerups.forEach(p => p.y += scrollSpeed);
+            game.powerups = game.powerups.filter(p => p.y < GH + 50);
+            game.bullets.forEach(b => b.y -= 600 * dt);
+            game.bullets = game.bullets.filter(b => b.y > -20);
+            game.bossBullets.forEach(b => { b.x += b.dx * 300 * dt; b.y += b.dy * 300 * dt; });
+            game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
+
+            if (Date.now() - game.fireTimer > game.fireRate) {
+                game.bullets.push({ x: game.player.x, y: game.player.y - 25 });
+                game.fireTimer = Date.now();
+            }
+
+            game.bullets.forEach((b, bi) => {
+                game.enemies.forEach((e, ei) => {
+                    if (Math.abs(b.x - e.x) < (e.w/2) && Math.abs(b.y - e.y) < (e.h/2)) {
+                        e.hp--; game.bullets[bi].dead = true;
+                        if (e.hp <= 0) { game.enemies[ei].dead = true; game.score += e.score * game.scoreMult; }
+                    }
+                });
+                if (game.boss && Math.abs(b.x - game.boss.x) < 50 && Math.abs(b.y - game.boss.y) < 50) {
+                    game.boss.hp--; game.bullets[bi].dead = true;
+                    if (game.boss.hp <= 0) {
+                        game.score += 500 * game.scoreMult; game.boss = null; game.bossBullets = [];
+                        game.nextBossDist += 1000; document.getElementById('bossBarContainer').style.display = 'none';
+                    }
+                }
+            });
+
+            game.bullets = game.bullets.filter(b => !b.dead);
+            game.enemies = game.enemies.filter(e => !e.dead);
+
+            let hit = false;
+            game.enemies.forEach(e => {
+                if (Math.abs(game.player.x - e.x) < 30 && Math.abs(game.player.y - e.y) < 30) {
+                    game.hp--; hit = true; e.dead = true;
+                }
+            });
+            game.enemies = game.enemies.filter(e => !e.dead);
+            game.bossBullets.forEach((b, bi) => {
+                if (Math.abs(game.player.x - b.x) < 20 && Math.abs(game.player.y - b.y) < 20) {
+                    game.hp--; hit = true; game.bossBullets[bi].dead = true;
+                }
+            });
+            game.bossBullets = game.bossBullets.filter(b => !b.dead);
+            if (game.boss && Math.abs(game.player.x - game.boss.x) < 60 && Math.abs(game.player.y - game.boss.y) < 60) {
+                game.hp -= 5; hit = true;
+            }
+
+            if (hit) { canvas.style.border = "3px solid red"; setTimeout(() => canvas.style.border = "none", 100); }
+
+            game.powerups.forEach((p, pi) => {
+                let dist = Math.sqrt((game.player.x - p.x)**2 + (game.player.y - p.y)**2);
+                if (dist < game.pickupRad) {
+                    p.x += (game.player.x - p.x) * 0.1; p.y += (game.player.y - p.y) * 0.1;
+                    if (dist < 30) {
+                        if (p.type === 'hp') game.hp = Math.min(game.maxHp, game.hp + 2);
+                        else game.score += 50 * game.scoreMult;
+                        game.powerups[pi].dead = true;
+                    }
+                }
+            });
+            game.powerups = game.powerups.filter(p => !p.dead);
+
+            document.getElementById('scoreDisplay').innerText = "💎 " + Math.floor(game.score);
+            document.getElementById('hpDisplay').innerText = "❤️ " + Math.ceil(game.hp) + "/" + game.maxHp;
+            document.getElementById('distDisplay').innerText = "📏 " + Math.floor(game.dist) + "m";
+
+            if (game.hp <= 0) gameOver();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, GW, GH);
+            ctx.fillStyle = '#E0F2F7'; ctx.fillRect(0,0,GW,GH);
+
+            if (game.running && game.hp > 0 && game.pickupRad > 40) {
+                ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(game.player.x, game.player.y, game.pickupRad, 0, Math.PI*2); ctx.stroke();
+            }
+
+            game.powerups.forEach(p => {
+                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.font = '14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                ctx.fillText(p.label, p.x, p.y);
+            });
+
+            game.enemies.forEach(e => {
+                ctx.fillStyle = e.color; ctx.fillRect(e.x - e.w/2, e.y - e.h/2, e.w, e.h);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(e.x - e.w/4, e.y - e.h/4, e.w/2, e.h/2);
+            });
+
+            if (game.boss) {
+                let b = game.boss;
+                ctx.fillStyle = '#1E40AF'; ctx.fillRect(b.x - 50, b.y - 50, 100, 100);
+                ctx.fillStyle = '#1e3a8a'; ctx.fillRect(b.x - 10, b.y + 20, 20, 40);
+                ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign='center'; ctx.fillText("BOSS", b.x, b.y);
+            }
+
+            ctx.fillStyle = '#DC2626';
+            game.bossBullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill(); });
+
+            ctx.fillStyle = '#ffffff';
+            game.bullets.forEach(b => {
+                ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#000'; ctx.lineWidth=1; ctx.stroke();
+            });
+
+            if (game.running && game.hp > 0) {
+                playerEntity.style.left = (game.player.x / GW * 100) + '%';
+                playerEntity.style.top = (game.player.y / GH * 100) + '%';
+            }
+        }
+
+        function loop(ts) {
+            let dt = (ts - game.lastTime) / 1000;
+            if(dt > 0.1) dt = 0.1;
+            game.lastTime = ts;
+            update(dt);
+            draw();
+            if (game.running) requestAnimationFrame(loop);
+        }
+
+        function handleInput(clientX, clientY) {
+            if (!game.running) return;
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = GW / rect.width;
+            let scaleY = GH / rect.height;
+            let relativeX = (clientX - rect.left) * scaleX;
+            let relativeY = (clientY - rect.top) * scaleY;
+            game.player.x = Math.max(20, Math.min(GW - 20, relativeX));
+            let minY = GH * 0.4; let maxY = GH - 30;
+            game.player.y = Math.max(minY, Math.min(maxY, relativeY));
+        }
+
+        window.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+        window.addEventListener('mousemove', e => { if(e.buttons === 1) handleInput(e.clientX, e.clientY); });
+        window.addEventListener('touchstart', e => { if (game.running) handleInput(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+
+    </script>
+</body>
+</html>
+
+
