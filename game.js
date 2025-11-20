@@ -31,8 +31,8 @@
         loadSprite('player', 'assets/soldier-back.svg');
 
         // Sprite dei nemici
-        loadSprite('enemy1', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
-        loadSprite('enemy2', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
+        loadSprite('enemy1', 'assets/enemy1.png');
+        loadSprite('enemy2', 'assets/enemy2.png');
 
         function isValidImage(img) {
             return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
@@ -160,7 +160,7 @@
             draw(ctx) {
                 const half = this.size / 2;
 
-                if (this.sprite && this.sprite.complete) {
+                if (isValidImage(this.sprite)) {
                     ctx.drawImage(this.sprite, this.x - half, this.y - half, this.size, this.size);
                 } else {
                     // fallback quadrato
