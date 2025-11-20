@@ -115,6 +115,20 @@
         function stopMusic() {
             backgroundMusic.pause();
         }
+
+        function enableAudioOnInteraction() {
+            const unlock = () => {
+                primeAudio();
+                startMusic();
+                ['pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+                    window.removeEventListener(evt, unlock);
+                });
+            };
+
+            ['pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+                window.addEventListener(evt, unlock, { once: false, passive: true });
+            });
+        }
         
         const GW = 450;
         const GH = 800;
@@ -596,5 +610,6 @@
 
         showMainMenu();
         loadAssets();
+        enableAudioOnInteraction();
 
     
