@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Cartoon soldier seen from behind holding a rifle">
+  <defs>
+    <linearGradient id="sand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e2c89d" />
+      <stop offset="100%" stop-color="#c8a26f" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sand)"/>
+  <ellipse cx="190" cy="430" rx="170" ry="60" fill="#b8905f" opacity="0.65"/>
+  <ellipse cx="320" cy="455" rx="150" ry="50" fill="#d4b281" opacity="0.6"/>
+
+  <!-- Rifle -->
+  <rect x="310" y="280" width="180" height="26" rx="6" fill="#896541" stroke="#5b432e" stroke-width="4"/>
+  <rect x="455" y="235" width="32" height="70" rx="6" fill="#d9d8d6" stroke="#7d7d7d" stroke-width="3"/>
+  <rect x="445" y="230" width="20" height="20" rx="2" fill="#d9d8d6" stroke="#7d7d7d" stroke-width="2"/>
+  <rect x="295" y="292" width="30" height="24" fill="#3f3327" rx="4"/>
+
+  <!-- Hands -->
+  <ellipse cx="215" cy="318" rx="25" ry="28" fill="#f4c99d" stroke="#d49d6f" stroke-width="4"/>
+  <ellipse cx="320" cy="310" rx="26" ry="30" fill="#f4c99d" stroke="#d49d6f" stroke-width="4"/>
+
+  <!-- Body and coat -->
+  <rect x="155" y="230" width="210" height="200" rx="50" fill="#5e7647" stroke="#2f3d28" stroke-width="6"/>
+  <rect x="185" y="350" width="150" height="90" rx="22" fill="#496239" stroke="#2f3d28" stroke-width="5"/>
+  <rect x="170" y="310" width="180" height="30" rx="12" fill="#6f8855" stroke="#2f3d28" stroke-width="4"/>
+  <ellipse cx="240" cy="330" rx="18" ry="18" fill="#d2a15e" stroke="#2f3d28" stroke-width="4"/>
+  <ellipse cx="290" cy="330" rx="18" ry="18" fill="#d2a15e" stroke="#2f3d28" stroke-width="4"/>
+  <rect x="195" y="255" width="40" height="42" rx="6" fill="#6f8855" stroke="#2f3d28" stroke-width="4"/>
+  <rect x="285" y="255" width="40" height="42" rx="6" fill="#6f8855" stroke="#2f3d28" stroke-width="4"/>
+  <path d="M150 275 Q256 170 362 275" fill="none" stroke="#6f8855" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Hood -->
+  <ellipse cx="256" cy="190" rx="130" ry="110" fill="#5e7647" stroke="#2f3d28" stroke-width="7"/>
+  <ellipse cx="256" cy="195" rx="78" ry="60" fill="#6f8855" opacity="0.9"/>
+  <ellipse cx="230" cy="165" rx="55" ry="35" fill="#7d925f" opacity="0.45"/>
+
+  <!-- Boots -->
+  <rect x="190" y="400" width="60" height="65" rx="10" fill="#5b4d3d" stroke="#2e2419" stroke-width="4"/>
+  <rect x="280" y="400" width="60" height="65" rx="10" fill="#5b4d3d" stroke="#2e2419" stroke-width="4"/>
+  <rect x="190" y="440" width="60" height="22" fill="#3f3327" rx="6"/>
+  <rect x="280" y="440" width="60" height="22" fill="#3f3327" rx="6"/>
+</svg>
