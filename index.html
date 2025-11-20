@@ -232,6 +232,7 @@
     </div>
 
     <script>
+        // Desert Raiders update: sprite-based enemies, bullets and heart pickups with asset preloading.
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const playerEntity = document.getElementById('playerEntity');
@@ -247,6 +248,44 @@
         backgroundMusic.loop = true;
         backgroundMusic.volume = 0.5;
         backgroundMusic.preload = 'auto';
+
+        // --- Asset loading ---
+        const images = {};
+        let assetsLoaded = 0;
+        const assetsToLoad = 5;
+        let assetsReady = false;
+        let assetsLoading = false;
+        let pendingStart = false;
+
+        function handleAssetLoad() {
+            assetsLoaded++;
+            if (assetsLoaded >= assetsToLoad) {
+                assetsReady = true;
+                assetsLoading = false;
+                if (pendingStart) {
+                    pendingStart = false;
+                    startGame();
+                }
+            }
+        }
+
+        function loadImage(key, src) {
+            const img = new Image();
+            img.src = src;
+            img.onload = handleAssetLoad;
+            img.onerror = handleAssetLoad;
+            images[key] = img;
+        }
+
+        function loadAssets() {
+            if (assetsReady || assetsLoading) return;
+            assetsLoading = true;
+            loadImage('enemy1', 'assets/enemy1.png');
+            loadImage('enemy2', 'assets/enemy2.png');
+            loadImage('enemy3', 'assets/enemy3.png');
+            loadImage('heart', 'assets/heart.png');
+            loadImage('bullet', 'assets/bullet.png');
+        }
 
         const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
 
@@ -336,6 +375,40 @@
         // CARICAMENTO DATI CON BONUS DI BENVENUTO
         let savedData = JSON.parse(localStorage.getItem('arctic_save')) || { score: 2000, levels: {} }; // Bonus 2000 per test
         PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
+
+        class Enemy {
+            constructor({ x, y, type, isHeavy = false }) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.size = isHeavy ? 40 : 30;
+                this.hp = isHeavy ? 4 : 1;
+                this.score = isHeavy ? 20 : 10;
+                this.speed = 150;
+                const spritePool = [images.enemy1, images.enemy2, images.enemy3].filter(Boolean);
+                this.sprite = spritePool[Math.floor(Math.random() * spritePool.length)] || null;
+                this.dead = false;
+            }
+
+            update(dt) {
+                this.y += this.speed * dt;
+            }
+
+            draw(ctx) {
+                const half = this.size / 2;
+                if (this.sprite && this.sprite.complete) {
+                    ctx.drawImage(this.sprite, this.x - half, this.y - half, this.size, this.size);
+                } else {
+                    ctx.fillStyle = '#b45309';
+                    ctx.fillRect(this.x - half, this.y - half, this.size, this.size);
+                }
+            }
+
+            getBounds() {
+                const half = this.size / 2;
+                return { x: this.x - half, y: this.y - half, w: this.size, h: this.size };
+            }
+        }
 
         let game = {
             running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
@@ -440,6 +513,11 @@
         };
 
         window.startGame = function() {
+            if (!assetsReady) {
+                pendingStart = true;
+                loadAssets();
+                return;
+            }
             primeAudio();
             startMusic();
             applyPerks();
@@ -492,14 +570,12 @@
             if (!game.boss) {
                 if (Math.random() < 0.03) {
                     let isHeavy = Math.random() > 0.8;
-                    game.enemies.push({
-                        x: Math.random() * (GW - 40) + 20, y: -50,
+                    game.enemies.push(new Enemy({
+                        x: Math.random() * (GW - 40) + 20,
+                        y: -50,
                         type: isHeavy ? 'heavy' : 'grunt',
-                        hp: isHeavy ? 4 : 1,
-                        w: isHeavy ? 40 : 30, h: isHeavy ? 40 : 30,
-                        color: isHeavy ? '#7c2d12' : '#b45309',
-                        score: isHeavy ? 20 : 10
-                    });
+                        isHeavy
+                    }));
                 }
                 if (Math.random() < 0.005) {
                     let type = Math.random() > 0.5 ? 'hp' : 'coin';
@@ -531,7 +607,7 @@
                 document.getElementById('bossBarFill').style.width = Math.max(0, (b.hp / b.maxHp) * 100) + '%';
             }
 
-            game.enemies.forEach(e => e.y += scrollSpeed);
+            game.enemies.forEach(e => e.update(dt));
             game.enemies = game.enemies.filter(e => e.y < GH + 50);
             game.powerups.forEach(p => p.y += scrollSpeed);
             game.powerups = game.powerups.filter(p => p.y < GH + 50);
@@ -548,7 +624,8 @@
 
             game.bullets.forEach((b, bi) => {
                 game.enemies.forEach((e, ei) => {
-                    if (Math.abs(b.x - e.x) < (e.w/2) && Math.abs(b.y - e.y) < (e.h/2)) {
+                    const bounds = e.getBounds();
+                    if (b.x > bounds.x && b.x < bounds.x + bounds.w && b.y > bounds.y && b.y < bounds.y + bounds.h) {
                         e.hp--; game.bullets[bi].dead = true; sounds.targetExplosion.play();
                         if (e.hp <= 0) { game.enemies[ei].dead = true; game.score += e.score * game.scoreMult; }
                     }
@@ -568,7 +645,12 @@
 
             let hit = false;
             game.enemies.forEach(e => {
-                if (Math.abs(game.player.x - e.x) < 30 && Math.abs(game.player.y - e.y) < 30) {
+                const bounds = e.getBounds();
+                const padding = 15;
+                if (
+                    game.player.x > bounds.x - padding && game.player.x < bounds.x + bounds.w + padding &&
+                    game.player.y > bounds.y - padding && game.player.y < bounds.y + bounds.h + padding
+                ) {
                     game.hp--; hit = true; e.dead = true;
                 }
             });
@@ -657,15 +739,16 @@
             }
 
             game.powerups.forEach(p => {
-                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = 'black'; ctx.font = '14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-                ctx.fillText(p.label, p.x, p.y);
+                if (p.type === 'hp' && images.heart) {
+                    ctx.drawImage(images.heart, p.x - 18, p.y - 18, 36, 36);
+                } else {
+                    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.font = '14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                    ctx.fillText(p.label, p.x, p.y);
+                }
             });
 
-            game.enemies.forEach(e => {
-                ctx.fillStyle = e.color; ctx.fillRect(e.x - e.w/2, e.y - e.h/2, e.w, e.h);
-                ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(e.x - e.w/4, e.y - e.h/4, e.w/2, e.h/2);
-            });
+            game.enemies.forEach(e => e.draw(ctx));
 
             if (game.boss) {
                 let b = game.boss;
@@ -677,10 +760,15 @@
             ctx.fillStyle = '#DC2626';
             game.bossBullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill(); });
 
-            ctx.fillStyle = '#ffffff';
             game.bullets.forEach(b => {
-                ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#000'; ctx.lineWidth=1; ctx.stroke();
+                const size = 14;
+                if (images.bullet) {
+                    ctx.drawImage(images.bullet, b.x - size/2, b.y - size/2, size, size);
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = '#000'; ctx.lineWidth=1; ctx.stroke();
+                }
             });
 
             if (game.running && game.hp > 0) {
@@ -713,6 +801,8 @@
         window.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
         window.addEventListener('mousemove', e => { if(e.buttons === 1) handleInput(e.clientX, e.clientY); });
         window.addEventListener('touchstart', e => { if (game.running) handleInput(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+
+        loadAssets();
 
     </script>
 </body>
