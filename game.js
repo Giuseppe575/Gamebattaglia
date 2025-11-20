@@ -17,26 +17,25 @@
         backgroundMusic.preload = 'auto';
 
         // --- Asset loading ---
-        const assetSources = {
-            enemy1: 'assets/enemy1.png',
-            enemy2: 'assets/enemy2.png',
-            enemy3: 'assets/enemy3.png',
-            heart: 'assets/heart.png',
-            bullet: 'assets/bullet.png'
-        };
         const images = {};
         let assetsLoaded = 0;
-        const assetsToLoad = Object.keys(assetSources).length;
+        let assetsToLoad = 0;
         let assetsReady = false;
-        let assetsLoading = false;
         let pendingStart = false;
 
-        function handleAssetLoad(src, status = 'loaded') {
+        function loadImage(key, src) {
+            assetsToLoad++;
+            const img = new Image();
+            img.src = src;
+            img.onload = handleAssetLoad;
+            img.onerror = handleAssetLoad;
+            images[key] = img;
+        }
+
+        function handleAssetLoad() {
             assetsLoaded++;
-            console.log(`Asset ${status}:`, src, `${assetsLoaded}/${assetsToLoad}`);
             if (assetsLoaded >= assetsToLoad) {
                 assetsReady = true;
-                assetsLoading = false;
                 if (pendingStart) {
                     pendingStart = false;
                     startGame();
@@ -44,28 +43,18 @@
             }
         }
 
-        function loadImage(key, src) {
-            const img = new Image();
-            img.onload = () => handleAssetLoad(src, 'loaded');
-            img.onerror = () => {
-                images[key] = null; // mark as unusable so rendering falls back to shapes
-                handleAssetLoad(src, 'error');
-            };
-            img.src = src;
-            images[key] = img;
-        }
-
         function isValidImage(img) {
             return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
         }
 
         function loadAssets() {
-            if (assetsReady || assetsLoading) return;
-            assetsLoading = true;
-            Object.entries(assetSources).forEach(([key, src]) => loadImage(key, src));
-            if (assetsToLoad === 0) {
-                assetsReady = true;
-            }
+            if (assetsReady) return;
+            if (assetsToLoad > 0) return; // già in corso
+            loadImage('enemy1', 'assets/enemy1.png');
+            loadImage('enemy2', 'assets/enemy2.png');
+            loadImage('enemy3', 'assets/enemy3.png');
+            loadImage('heart',  'assets/heart.png');
+            loadImage('bullet', 'assets/bullet.png');
         }
 
         const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
