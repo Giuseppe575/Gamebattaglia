@@ -242,6 +242,58 @@
         const gameOverMenu = document.getElementById('gameOverMenu');
         const perkPointsDisplay = document.getElementById('perkPoints');
         const perksPanel = document.getElementById('perksPanel');
+
+        const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
+
+        function createSound(src, { volume = 0.5, playbackRate = 1, poolSize = 3 } = {}) {
+            const elements = Array.from({ length: poolSize }, () => {
+                const audio = new Audio(src);
+                audio.preload = 'auto';
+                audio.volume = volume;
+                audio.playbackRate = playbackRate;
+                return audio;
+            });
+
+            let idx = 0;
+            const prime = () => {
+                elements.forEach(a => {
+                    const originalVolume = a.volume;
+                    a.volume = 0;
+                    a.currentTime = 0;
+                    a.play().then(() => {
+                        a.pause();
+                        a.currentTime = 0;
+                        a.volume = originalVolume;
+                    }).catch(() => { a.volume = originalVolume; });
+                });
+            };
+
+            const play = () => {
+                const audio = elements[idx];
+                idx = (idx + 1) % elements.length;
+                audio.currentTime = 0;
+                audio.play().catch(() => {});
+            };
+
+            return { play, prime };
+        }
+
+        const sounds = {
+            laser: createSound('retro-laser-1-236669.mp3', { volume: 0.4, playbackRate: 1.1, poolSize: 4 }),
+            enemyHit: createSound(audioBeep, { volume: 0.35, playbackRate: 0.9, poolSize: 3 }),
+            bossHit: createSound(audioBeep, { volume: 0.4, playbackRate: 1.2, poolSize: 3 }),
+            bossDeath: createSound(audioBeep, { volume: 0.5, playbackRate: 0.6, poolSize: 2 }),
+            playerHit: createSound(audioBeep, { volume: 0.45, playbackRate: 0.7, poolSize: 3 }),
+            powerup: createSound(audioBeep, { volume: 0.35, playbackRate: 1.5, poolSize: 2 }),
+            gameOver: createSound(audioBeep, { volume: 0.45, playbackRate: 0.5, poolSize: 1 })
+        };
+
+        let audioPrimed = false;
+        function primeAudio() {
+            if (audioPrimed) return;
+            Object.values(sounds).forEach(s => s.prime());
+            audioPrimed = true;
+        }
         
         const GW = 450;
         const GH = 800;
@@ -361,6 +413,7 @@
         };
 
         window.startGame = function() {
+            primeAudio();
             applyPerks();
             game.running = true;
             game.score = 0;
@@ -390,6 +443,8 @@
             game.running = false;
             savedData.score += game.score;
             saveGame();
+
+            sounds.gameOver.play();
 
             menuOverlay.style.display = 'flex';
             mainMenuButtons.classList.add('hidden');
@@ -458,19 +513,21 @@
 
             if (Date.now() - game.fireTimer > game.fireRate) {
                 game.bullets.push({ x: game.player.x, y: game.player.y - 25 });
+                sounds.laser.play();
                 game.fireTimer = Date.now();
             }
 
             game.bullets.forEach((b, bi) => {
                 game.enemies.forEach((e, ei) => {
                     if (Math.abs(b.x - e.x) < (e.w/2) && Math.abs(b.y - e.y) < (e.h/2)) {
-                        e.hp--; game.bullets[bi].dead = true;
+                        e.hp--; game.bullets[bi].dead = true; sounds.enemyHit.play();
                         if (e.hp <= 0) { game.enemies[ei].dead = true; game.score += e.score * game.scoreMult; }
                     }
                 });
                 if (game.boss && Math.abs(b.x - game.boss.x) < 50 && Math.abs(b.y - game.boss.y) < 50) {
-                    game.boss.hp--; game.bullets[bi].dead = true;
+                    game.boss.hp--; game.bullets[bi].dead = true; sounds.bossHit.play();
                     if (game.boss.hp <= 0) {
+                        sounds.bossDeath.play();
                         game.score += 500 * game.scoreMult; game.boss = null; game.bossBullets = [];
                         game.nextBossDist += 1000; document.getElementById('bossBarContainer').style.display = 'none';
                     }
@@ -497,7 +554,7 @@
                 game.hp -= 5; hit = true;
             }
 
-            if (hit) { canvas.style.border = "3px solid red"; setTimeout(() => canvas.style.border = "none", 100); }
+            if (hit) { sounds.playerHit.play(); canvas.style.border = "3px solid red"; setTimeout(() => canvas.style.border = "none", 100); }
 
             game.powerups.forEach((p, pi) => {
                 let dist = Math.sqrt((game.player.x - p.x)**2 + (game.player.y - p.y)**2);
@@ -506,6 +563,7 @@
                     if (dist < 30) {
                         if (p.type === 'hp') game.hp = Math.min(game.maxHp, game.hp + 2);
                         else game.score += 50 * game.scoreMult;
+                        sounds.powerup.play();
                         game.powerups[pi].dead = true;
                     }
                 }
