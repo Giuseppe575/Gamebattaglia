@@ -52,7 +52,6 @@
             if (assetsToLoad > 0) return; // già in corso
             loadImage('enemy1', 'assets/enemy1.png');
             loadImage('enemy2', 'assets/enemy2.png');
-            loadImage('enemy3', 'assets/enemy3.png');
             loadImage('heart',  'assets/heart.png');
             loadImage('bullet', 'assets/bullet.png');
         }
@@ -155,7 +154,7 @@
                 this.hp = isHeavy ? 4 : 1;
                 this.score = isHeavy ? 20 : 10;
                 this.speed = 150;
-                const spritePool = [images.enemy1, images.enemy2, images.enemy3].filter(isValidImage);
+                const spritePool = [images.enemy1, images.enemy2].filter(isValidImage);
                 this.sprite = spritePool[Math.floor(Math.random() * spritePool.length)] || null;
                 this.dead = false;
             }
