@@ -3,7 +3,7 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const playerEntity = document.getElementById('playerEntity');
-        
+
         const menuOverlay = document.getElementById('menuOverlay');
         const mainMenuButtons = document.getElementById('mainMenuButtons');
         const perksMenu = document.getElementById('perksMenu');
@@ -195,6 +195,15 @@
         function saveGame() {
             savedData.score = Math.floor(savedData.score);
             localStorage.setItem('arctic_save', JSON.stringify(savedData));
+        }
+
+        function showMainMenu() {
+            menuOverlay.style.display = 'flex';
+            mainMenuButtons.classList.remove('hidden');
+            perksMenu.classList.add('hidden');
+            gameOverMenu.classList.add('hidden');
+            playerEntity.style.display = 'none';
+            document.getElementById('bossBarContainer').style.display = 'none';
         }
 
         function applyPerks() {
@@ -578,6 +587,7 @@
         window.addEventListener('mousemove', e => { if(e.buttons === 1) handleInput(e.clientX, e.clientY); });
         window.addEventListener('touchstart', e => { if (game.running) handleInput(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
 
+        showMainMenu();
         loadAssets();
 
     

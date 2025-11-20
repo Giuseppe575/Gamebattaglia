@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Desert Assault - Unlocked</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="stylesheet" href="styles.css">
-
 </head>
 <body>
-
     <div id="gameContainer">
         <canvas id="gameCanvas" width="450" height="800"></canvas>
-        
+
         <!-- GIOCATORE SVG -->
         <div id="playerEntity">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -52,9 +49,9 @@
             <div id="perksMenu" class="hidden w-full flex flex-col items-center">
                 <h2 class="text-xl font-bold text-yellow-400 mb-2">NEGOZIO PERK</h2>
                 <p class="text-sm text-gray-300 mb-2">Punti: <span id="perkPoints" class="font-bold text-white">0</span></p>
-                
+
                 <div id="perksPanel"></div>
-                
+
                 <!-- Bottone Cheat -->
                 <button class="btn btn-yellow mt-4 py-2 text-sm" onclick="addMoney()">💰 AGGIUNGI 500 PUNTI</button>
                 <button class="btn btn-red mt-2" onclick="closePerks()">INDIETRO</button>
@@ -71,5 +68,3 @@
     <script src="game.js" defer></script>
 </body>
 </html>
-
-
