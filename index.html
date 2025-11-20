@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arctic Assault - Unlocked</title>
+    <title>Desert Assault - Unlocked</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             overflow: hidden;
             touch-action: none;
-            background-color: #111827;
-            color: white;
+            background: radial-gradient(circle at 20% 20%, #fef3c7 0%, #fde68a 30%, #facc15 70%, #ca8a04 100%);
+            color: #0f172a;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-user-select: none;
             user-select: none;
@@ -23,7 +23,7 @@
             height: 100vh;
             max-height: 850px;
             margin: 0 auto;
-            background-color: #000;
+            background-color: #0f172a;
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
@@ -32,7 +32,7 @@
             display: block;
             width: 100%;
             height: 100%;
-            background-color: #c0d8e8;
+            background-color: #fef3c7;
         }
 
         /* GIOCATORE SVG */
@@ -201,8 +201,8 @@
 
         <div id="menuOverlay">
             <div class="mb-6">
-                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-lg">ARCTIC<br>ASSAULT</h1>
-                <p class="text-sm text-gray-400 mt-2">Soldier Edition</p>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-orange-500 drop-shadow-lg">DESERT<br>ASSAULT</h1>
+                <p class="text-sm text-amber-200 mt-2">Soldier Edition</p>
             </div>
 
             <div id="mainMenuButtons" class="w-full flex flex-col items-center">
@@ -242,6 +242,11 @@
         const gameOverMenu = document.getElementById('gameOverMenu');
         const perkPointsDisplay = document.getElementById('perkPoints');
         const perksPanel = document.getElementById('perksPanel');
+
+        const backgroundMusic = new Audio('https://cdn.pixabay.com/download/audio/2022/08/01/audio_6bfc43882b.mp3?filename=desert-sunset-ambient-115084.mp3');
+        backgroundMusic.loop = true;
+        backgroundMusic.volume = 0.35;
+        backgroundMusic.preload = 'auto';
 
         const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
 
@@ -292,11 +297,34 @@
         function primeAudio() {
             if (audioPrimed) return;
             Object.values(sounds).forEach(s => s.prime());
+            backgroundMusic.volume = 0;
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play().then(() => {
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+                backgroundMusic.volume = 0.35;
+            }).catch(() => { backgroundMusic.volume = 0.35; });
             audioPrimed = true;
+        }
+
+        function startMusic() {
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play().catch(() => {});
+        }
+
+        function stopMusic() {
+            backgroundMusic.pause();
         }
         
         const GW = 450;
         const GH = 800;
+        const desertPebbles = Array.from({ length: 10 }, () => ({
+            x: Math.random() * GW,
+            y: GH * 0.7 + Math.random() * GH * 0.3,
+            w: 6 + Math.random() * 6,
+            h: 3 + Math.random() * 3,
+            opacity: 0.15 + Math.random() * 0.15
+        }));
 
         const PERKS = [
             { id: 'rapid', name: 'Rapid Fire', desc: 'Spara più veloce', cost: 100, max: 5, val: (lvl) => 250 - (lvl*30) },
@@ -414,6 +442,7 @@
 
         window.startGame = function() {
             primeAudio();
+            startMusic();
             applyPerks();
             game.running = true;
             game.score = 0;
@@ -452,6 +481,7 @@
             gameOverMenu.classList.remove('hidden');
             document.getElementById('finalScore').innerText = "Punti: " + Math.floor(game.score);
             playerEntity.style.display = 'none';
+            stopMusic();
         }
 
         function update(dt) {
@@ -468,7 +498,7 @@
                         type: isHeavy ? 'heavy' : 'grunt',
                         hp: isHeavy ? 4 : 1,
                         w: isHeavy ? 40 : 30, h: isHeavy ? 40 : 30,
-                        color: isHeavy ? '#880E4F' : '#DC2626',
+                        color: isHeavy ? '#7c2d12' : '#b45309',
                         score: isHeavy ? 20 : 10
                     });
                 }
@@ -577,9 +607,50 @@
             if (game.hp <= 0) gameOver();
         }
 
-        function draw() {
+        function drawDesertBackground() {
             ctx.clearRect(0, 0, GW, GH);
-            ctx.fillStyle = '#E0F2F7'; ctx.fillRect(0,0,GW,GH);
+            const sky = ctx.createLinearGradient(0, 0, 0, GH);
+            sky.addColorStop(0, '#fde68a');
+            sky.addColorStop(0.5, '#fbbf24');
+            sky.addColorStop(1, '#f59e0b');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, GW, GH);
+
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+            ctx.beginPath();
+            ctx.arc(GW * 0.8, GH * 0.2, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#f4b860';
+            ctx.beginPath();
+            ctx.moveTo(0, GH * 0.55);
+            ctx.quadraticCurveTo(GW * 0.3, GH * 0.45, GW * 0.6, GH * 0.58);
+            ctx.quadraticCurveTo(GW * 0.85, GH * 0.65, GW, GH * 0.6);
+            ctx.lineTo(GW, GH);
+            ctx.lineTo(0, GH);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#e6a04b';
+            ctx.beginPath();
+            ctx.moveTo(0, GH * 0.65);
+            ctx.quadraticCurveTo(GW * 0.25, GH * 0.6, GW * 0.5, GH * 0.7);
+            ctx.quadraticCurveTo(GW * 0.75, GH * 0.78, GW, GH * 0.72);
+            ctx.lineTo(GW, GH);
+            ctx.lineTo(0, GH);
+            ctx.closePath();
+            ctx.fill();
+
+            desertPebbles.forEach(p => {
+                ctx.fillStyle = `rgba(120, 53, 15, ${p.opacity})`;
+                ctx.beginPath();
+                ctx.ellipse(p.x, p.y, p.w, p.h, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function draw() {
+            drawDesertBackground();
 
             if (game.running && game.hp > 0 && game.pickupRad > 40) {
                 ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)'; ctx.lineWidth = 2;
