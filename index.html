@@ -243,9 +243,9 @@
         const perkPointsDisplay = document.getElementById('perkPoints');
         const perksPanel = document.getElementById('perksPanel');
 
-        const backgroundMusic = new Audio('https://cdn.pixabay.com/download/audio/2022/08/01/audio_6bfc43882b.mp3?filename=desert-sunset-ambient-115084.mp3');
+        const backgroundMusic = new Audio('https://cdn.pixabay.com/download/audio/2023/04/12/audio_a0f4c73c56.mp3?filename=calm-desert-ambience-145076.mp3');
         backgroundMusic.loop = true;
-        backgroundMusic.volume = 0.35;
+        backgroundMusic.volume = 0.4;
         backgroundMusic.preload = 'auto';
 
         const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
@@ -285,9 +285,9 @@
 
         const sounds = {
             laser: createSound('retro-laser-1-236669.mp3', { volume: 0.4, playbackRate: 1.1, poolSize: 4 }),
-            enemyHit: createSound(audioBeep, { volume: 0.35, playbackRate: 0.9, poolSize: 3 }),
-            bossHit: createSound(audioBeep, { volume: 0.4, playbackRate: 1.2, poolSize: 3 }),
-            bossDeath: createSound(audioBeep, { volume: 0.5, playbackRate: 0.6, poolSize: 2 }),
+            enemyHit: createSound('https://cdn.pixabay.com/download/audio/2021/09/17/audio_13792c8842.mp3?filename=retro-explosion-4-88698.mp3', { volume: 0.4, playbackRate: 1, poolSize: 4 }),
+            bossHit: createSound('https://cdn.pixabay.com/download/audio/2021/09/17/audio_13792c8842.mp3?filename=retro-explosion-4-88698.mp3', { volume: 0.45, playbackRate: 0.95, poolSize: 4 }),
+            bossDeath: createSound('https://cdn.pixabay.com/download/audio/2021/09/17/audio_13792c8842.mp3?filename=retro-explosion-4-88698.mp3', { volume: 0.55, playbackRate: 0.75, poolSize: 3 }),
             playerHit: createSound(audioBeep, { volume: 0.45, playbackRate: 0.7, poolSize: 3 }),
             powerup: createSound(audioBeep, { volume: 0.35, playbackRate: 1.5, poolSize: 2 }),
             gameOver: createSound(audioBeep, { volume: 0.45, playbackRate: 0.5, poolSize: 1 })
@@ -302,8 +302,8 @@
             backgroundMusic.play().then(() => {
                 backgroundMusic.pause();
                 backgroundMusic.currentTime = 0;
-                backgroundMusic.volume = 0.35;
-            }).catch(() => { backgroundMusic.volume = 0.35; });
+                backgroundMusic.volume = 0.4;
+            }).catch(() => { backgroundMusic.volume = 0.4; });
             audioPrimed = true;
         }
 
