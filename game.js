@@ -16,32 +16,23 @@
         backgroundMusic.volume = 0.5;
         backgroundMusic.preload = 'auto';
 
-        // --- Asset loading ---
+        // === SPRITE GRAFICI ===
         const images = {};
-        let assetsLoaded = 0;
-        let assetsToLoad = 0;
         let assetsReady = false;
         let pendingStart = false;
 
-        function loadImage(key, src) {
-            assetsToLoad++;
+        function loadSprite(key, src) {
             const img = new Image();
             img.src = src;
-            img.onload = handleAssetLoad;
-            img.onerror = handleAssetLoad;
             images[key] = img;
         }
 
-        function handleAssetLoad() {
-            assetsLoaded++;
-            if (assetsLoaded >= assetsToLoad) {
-                assetsReady = true;
-                if (pendingStart) {
-                    pendingStart = false;
-                    startGame();
-                }
-            }
-        }
+        // Sprite del giocatore
+        loadSprite('player', 'assets/soldier-back.svg');
+
+        // Sprite dei nemici
+        loadSprite('enemy1', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
+        loadSprite('enemy2', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
 
         function isValidImage(img) {
             return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
@@ -49,11 +40,13 @@
 
         function loadAssets() {
             if (assetsReady) return;
-            if (assetsToLoad > 0) return; // già in corso
-            loadImage('enemy1', 'assets/enemy1.png');
-            loadImage('enemy2', 'assets/enemy2.png');
-            loadImage('heart',  'assets/heart.png');
-            loadImage('bullet', 'assets/bullet.png');
+            loadSprite('heart',  'assets/heart.png');
+            loadSprite('bullet', 'assets/bullet.png');
+            assetsReady = true;
+            if (pendingStart) {
+                pendingStart = false;
+                startGame();
+            }
         }
 
         const audioBeep = "data:audio/wav;base64,UklGRtIzAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0Ya4zAAAAADUDZwaSCbQMyQ/OEsAVxBgcFZgepiC5IhMhnSOk5EYCk99ZSh5Nqjmn/Edbhs4g86KF9oBCdMZ5yA4zHyCi8AaSzpvD34cRjhBiwgY/HtMfPIETbUCLp4zCJKkxhspCqtFah0ntTnqOijjkWw6djG3E17RpUllAnp8RyoiCs8JczwbYjysLttCSFs/+eKTs6N6uH8RIGYH4IDGbESgDS3x1q3sp69I4VqXVpFU+OjRBiXyBWXkcnv/0AjX+i/3Xf2RPGG3QZhXXF0FWu0QiRecy2UYhgVjvIWp2L0tEyflnxB+IQNdpx4uCIljOB3RuI8xKJSzCs+uyMc69BGCh4GmD4kpJsmO0DmS+EZwFoOcVwzWv+4n5PyhIqAX6/hU8lm34ZbZFv34/N+Dz9zTIGajx9QhZWzvNLhSh+XPMtLHm7NHRiqFWFnhz2PfvZ0SQLnJxx5SOaIsIqXQL5WPtmr1/rP5T+YmqwFklxMQ1bSwsa7gUCxQaIODFqNEUA3wZnYmAoZDM1vR7q6KFpYv8dAr5taU4BYHXI11Tx+COuVa4gtFEcWrvIFOP4COwOmh7ELyOAlT1QzcHtkmJvqN1JAaSzUBL+LuMS+odzw86799WsJ1rmwlIW13n8FO2LoduiasG5CNkFCkXeZ0Lm52gp3JBML6qRZypVV1gEQi7CoF4PjRlfngqAiPLZM7g1rYu2gW/eKx6F5XDaaAzzXyfFW0qdO+BalDx9o8lUaq3JPK+zMsHjID0Fn9uSlGyxhWk6CK2U1teJz4P9/2idz27ddYqnb9mTgfbxlFMm60xTJFQ9yt1IxGcmQ6BJFmZH6bXS5ajg==";
@@ -146,16 +139,17 @@
         PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
 
         class Enemy {
-            constructor({ x, y, type, isHeavy = false }) {
+            constructor({ x, y, isHeavy = false }) {
                 this.x = x;
                 this.y = y;
-                this.type = type;
-                this.size = isHeavy ? 40 : 30;
-                this.hp = isHeavy ? 4 : 1;
-                this.score = isHeavy ? 20 : 10;
+                this.isHeavy = isHeavy;
+                this.size = isHeavy ? 45 : 35;
+                this.hp = isHeavy ? 3 : 1;
                 this.speed = 150;
-                const spritePool = [images.enemy1, images.enemy2].filter(isValidImage);
-                this.sprite = spritePool[Math.floor(Math.random() * spritePool.length)] || null;
+                this.score = isHeavy ? 20 : 10;
+
+                const sprites = [images.enemy1, images.enemy2].filter(Boolean);
+                this.sprite = sprites[Math.floor(Math.random() * sprites.length)];
                 this.dead = false;
             }
 
@@ -165,9 +159,11 @@
 
             draw(ctx) {
                 const half = this.size / 2;
-                if (isValidImage(this.sprite)) {
+
+                if (this.sprite && this.sprite.complete) {
                     ctx.drawImage(this.sprite, this.x - half, this.y - half, this.size, this.size);
                 } else {
+                    // fallback quadrato
                     ctx.fillStyle = '#b45309';
                     ctx.fillRect(this.x - half, this.y - half, this.size, this.size);
                 }
@@ -291,7 +287,7 @@
         };
 
         window.startGame = function() {
-            console.log('startGame invoked. assetsReady:', assetsReady, 'assetsLoaded:', assetsLoaded);
+            console.log('startGame invoked. assetsReady:', assetsReady);
             if (!assetsReady) {
                 pendingStart = true;
                 loadAssets();
@@ -349,13 +345,14 @@
 
             if (!game.boss) {
                 if (Math.random() < 0.03) {
-                    let isHeavy = Math.random() > 0.8;
-                    game.enemies.push(new Enemy({
-                        x: Math.random() * (GW - 40) + 20,
-                        y: -50,
-                        type: isHeavy ? 'heavy' : 'grunt',
-                        isHeavy
-                    }));
+                    const isHeavy = Math.random() > 0.75;
+                    game.enemies.push(
+                        new Enemy({
+                            x: Math.random() * (GW - 40) + 20,
+                            y: -50,
+                            isHeavy
+                        })
+                    );
                 }
                 if (Math.random() < 0.005) {
                     let type = Math.random() > 0.5 ? 'hp' : 'coin';
@@ -510,6 +507,19 @@
             });
         }
 
+        function drawPlayer() {
+            const size = 50; // dimensione dello sprite
+            if (images.player && images.player.complete) {
+                ctx.drawImage(images.player, game.player.x - size/2, game.player.y - size/2, size, size);
+            } else {
+                // fallback vecchio
+                ctx.fillStyle = '#0f0';
+                ctx.beginPath();
+                ctx.arc(game.player.x, game.player.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
         function draw() {
             drawDesertBackground();
 
@@ -517,6 +527,8 @@
                 ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)'; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(game.player.x, game.player.y, game.pickupRad, 0, Math.PI*2); ctx.stroke();
             }
+
+            drawPlayer();
 
             game.powerups.forEach(p => {
                 if (p.type === 'hp' && isValidImage(images.heart)) {
