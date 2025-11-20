@@ -47,9 +47,16 @@
         function loadImage(key, src) {
             const img = new Image();
             img.onload = () => handleAssetLoad(src, 'loaded');
-            img.onerror = () => handleAssetLoad(src, 'error');
+            img.onerror = () => {
+                images[key] = null; // mark as unusable so rendering falls back to shapes
+                handleAssetLoad(src, 'error');
+            };
             img.src = src;
             images[key] = img;
+        }
+
+        function isValidImage(img) {
+            return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
         }
 
         function loadAssets() {
@@ -159,7 +166,7 @@
                 this.hp = isHeavy ? 4 : 1;
                 this.score = isHeavy ? 20 : 10;
                 this.speed = 150;
-                const spritePool = [images.enemy1, images.enemy2, images.enemy3].filter(Boolean);
+                const spritePool = [images.enemy1, images.enemy2, images.enemy3].filter(isValidImage);
                 this.sprite = spritePool[Math.floor(Math.random() * spritePool.length)] || null;
                 this.dead = false;
             }
@@ -170,7 +177,7 @@
 
             draw(ctx) {
                 const half = this.size / 2;
-                if (this.sprite && this.sprite.complete) {
+                if (isValidImage(this.sprite)) {
                     ctx.drawImage(this.sprite, this.x - half, this.y - half, this.size, this.size);
                 } else {
                     ctx.fillStyle = '#b45309';
@@ -524,7 +531,7 @@
             }
 
             game.powerups.forEach(p => {
-                if (p.type === 'hp' && images.heart) {
+                if (p.type === 'hp' && isValidImage(images.heart)) {
                     ctx.drawImage(images.heart, p.x - 18, p.y - 18, 36, 36);
                 } else {
                     ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI*2); ctx.fill();
@@ -547,7 +554,7 @@
 
             game.bullets.forEach(b => {
                 const size = 14;
-                if (images.bullet) {
+                if (isValidImage(images.bullet)) {
                     ctx.drawImage(images.bullet, b.x - size/2, b.y - size/2, size, size);
                 } else {
                     ctx.fillStyle = '#ffffff';
