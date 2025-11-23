@@ -30,9 +30,11 @@
         // Sprite del giocatore
         loadSprite('player', 'assets/soldier-back.svg');
 
-        // Sprite dei nemici
-        loadSprite('enemy1', 'assets/enemy1.png');
-        loadSprite('enemy2', 'assets/enemy2.png');
+// Sprite dei nemici
+loadSprite('enemy1', 'assets/enemy1.png');
+loadSprite('enemy2', 'assets/enemy2.png');
+loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
+loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
 
         function isValidImage(img) {
             return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
@@ -152,24 +154,40 @@
         let savedData = JSON.parse(localStorage.getItem('arctic_save')) || { score: 2000, levels: {} }; // Bonus 2000 per test
         PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
 
-        class Enemy {
-            constructor({ x, y, isHeavy = false }) {
-                this.x = x;
-                this.y = y;
-                this.isHeavy = isHeavy;
-                this.size = isHeavy ? 45 : 35;
-                this.hp = isHeavy ? 3 : 1;
-                this.speed = 150;
-                this.score = isHeavy ? 20 : 10;
+class Enemy {
+    constructor({ x, y, isHeavy = false }) {
+        this.x = x;
+        this.y = y;
+        this.isHeavy = isHeavy;
+        this.size = isHeavy ? 45 : 35;
+        this.hp = isHeavy ? 3 : 1;
+        this.speed = 140;
+        this.score = isHeavy ? 20 : 10;
+        this.fireDelay = 0.8 + Math.random() * 0.7;
+        this.fireTimer = this.fireDelay;
 
-                const sprites = [images.enemy1, images.enemy2].filter(Boolean);
-                this.sprite = sprites[Math.floor(Math.random() * sprites.length)];
-                this.dead = false;
-            }
+        const sprites = [images.enemyA, images.enemyB, images.enemy1, images.enemy2].filter(Boolean);
+        this.sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
+        this.dead = false;
+    }
 
-            update(dt) {
-                this.y += this.speed * dt;
-            }
+    update(dt, player) {
+        const dx = player.x - this.x;
+        const dy = Math.max(player.y - this.y, 20); // bias downward so they keep advancing
+        const dist = Math.max(Math.hypot(dx, dy), 1);
+        this.x += (dx / dist) * this.speed * dt * 0.8;
+        this.y += (dy / dist) * this.speed * dt;
+        this.x = Math.max(20, Math.min(GW - 20, this.x));
+
+        this.fireTimer -= dt;
+        if (this.fireTimer <= 0) {
+            this.fireTimer = this.fireDelay + Math.random() * 0.6;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            return { x: this.x, y: this.y, dx: nx, dy: ny, speed: 260 };
+        }
+        return null;
+    }
 
             draw(ctx) {
                 const half = this.size / 2;
@@ -189,13 +207,13 @@
             }
         }
 
-        let game = {
-            running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
-            player: { x: GW/2, y: GH*0.75 },
-            enemies: [], bullets: [], powerups: [], bossBullets: [], boss: null,
-            nextBossDist: 1000, lastTime: 0, fireTimer: 0,
-            fireRate: 250, moveSpeed: 300, pickupRad: 40, scoreMult: 1
-        };
+let game = {
+    running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
+    player: { x: GW/2, y: GH*0.75 },
+    enemies: [], bullets: [], enemyBullets: [], powerups: [], bossBullets: [], boss: null,
+    nextBossDist: 1000, lastTime: 0, fireTimer: 0,
+    fireRate: 250, moveSpeed: 300, pickupRad: 40, scoreMult: 1
+};
 
         function saveGame() {
             savedData.score = Math.floor(savedData.score);
@@ -314,11 +332,12 @@
             game.score = 0;
             game.dist = 0;
             game.player.x = GW/2; 
-            game.player.y = GH*0.75;
-            game.enemies = [];
-            game.bullets = [];
-            game.bossBullets = [];
-            game.powerups = [];
+    game.player.y = GH*0.75;
+    game.enemies = [];
+    game.bullets = [];
+    game.enemyBullets = [];
+    game.bossBullets = [];
+    game.powerups = [];
             game.boss = null;
             game.nextBossDist = 1000;
             game.lastTime = performance.now();
@@ -353,6 +372,8 @@
 
         function update(dt) {
             if(!game.running) return;
+
+            if (backgroundMusic.paused) startMusic();
 
             game.dist += dt * 10;
             let scrollSpeed = 150 * dt;
@@ -398,14 +419,19 @@
                 document.getElementById('bossBarFill').style.width = Math.max(0, (b.hp / b.maxHp) * 100) + '%';
             }
 
-            game.enemies.forEach(e => e.update(dt));
-            game.enemies = game.enemies.filter(e => e.y < GH + 50);
-            game.powerups.forEach(p => p.y += scrollSpeed);
-            game.powerups = game.powerups.filter(p => p.y < GH + 50);
-            game.bullets.forEach(b => b.y -= 600 * dt);
-            game.bullets = game.bullets.filter(b => b.y > -20);
-            game.bossBullets.forEach(b => { b.x += b.dx * 300 * dt; b.y += b.dy * 300 * dt; });
-            game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
+    game.enemies.forEach(e => {
+        const shot = e.update(dt, game.player);
+        if (shot) game.enemyBullets.push(shot);
+    });
+    game.enemies = game.enemies.filter(e => e.y < GH + 50);
+    game.powerups.forEach(p => p.y += scrollSpeed);
+    game.powerups = game.powerups.filter(p => p.y < GH + 50);
+    game.bullets.forEach(b => b.y -= 600 * dt);
+    game.bullets = game.bullets.filter(b => b.y > -20);
+    game.enemyBullets.forEach(b => { b.x += b.dx * b.speed * dt; b.y += b.dy * b.speed * dt; });
+    game.enemyBullets = game.enemyBullets.filter(b => !b.dead && b.y < GH + 30 && b.y > -30 && b.x > -30 && b.x < GW + 30);
+    game.bossBullets.forEach(b => { b.x += b.dx * 300 * dt; b.y += b.dy * 300 * dt; });
+    game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
 
             if (Date.now() - game.fireTimer > game.fireRate) {
                 game.bullets.push({ x: game.player.x, y: game.player.y - 25 });
@@ -446,6 +472,12 @@
                 }
             });
             game.enemies = game.enemies.filter(e => !e.dead);
+            game.enemyBullets.forEach((b, bi) => {
+                if (Math.abs(game.player.x - b.x) < 18 && Math.abs(game.player.y - b.y) < 18) {
+                    game.hp--; hit = true; game.enemyBullets[bi].dead = true;
+                }
+            });
+            game.enemyBullets = game.enemyBullets.filter(b => !b.dead);
             game.bossBullets.forEach((b, bi) => {
                 if (Math.abs(game.player.x - b.x) < 20 && Math.abs(game.player.y - b.y) < 20) {
                     game.hp--; hit = true; game.bossBullets[bi].dead = true;
@@ -555,6 +587,9 @@
             });
 
             game.enemies.forEach(e => e.draw(ctx));
+
+            ctx.fillStyle = '#b91c1c';
+            game.enemyBullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 7, 0, Math.PI*2); ctx.fill(); });
 
             if (game.boss) {
                 let b = game.boss;
