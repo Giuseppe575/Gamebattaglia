@@ -30,11 +30,41 @@
         // Sprite del giocatore
         loadSprite('player', 'assets/soldier-back.svg');
 
-// Sprite dei nemici
-loadSprite('enemy1', 'assets/enemy1.png');
-loadSprite('enemy2', 'assets/enemy2.png');
-loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
-loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
+        // Sprite di base dei nemici + atlante scena per estrarre i soldati identici al mockup
+        loadSprite('enemy1', 'assets/enemy1.png');
+        loadSprite('enemy2', 'assets/enemy2.png');
+        loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
+        loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
+        loadSprite('sceneAtlas', 'scena.png'); // contiene i soldati di riferimento
+
+        const atlasSlices = [
+            { x: 18,  y: 400, w: 150, h: 180 }, // soldato in piedi che spara (basso sinistra)
+            { x: 30,  y: 280, w: 90,  h: 110 }, // soldato accovacciato dietro cactus
+            { x: 165, y: 165, w: 80,  h: 95  }, // soldato sulla duna in alto
+            { x: 260, y: 320, w: 85,  h: 115 }  // soldato inginocchiato a destra
+        ];
+        const enemySprites = [];
+        let atlasPrepared = false;
+
+        function prepareAtlasSprites() {
+            if (atlasPrepared) return;
+            const atlas = images.sceneAtlas;
+            if (!isValidImage(atlas)) {
+                atlas.onload = prepareAtlasSprites;
+                return;
+            }
+            atlasPrepared = true;
+            atlasSlices.forEach(rect => {
+                const buf = document.createElement('canvas');
+                buf.width = rect.w;
+                buf.height = rect.h;
+                const bctx = buf.getContext('2d');
+                bctx.drawImage(atlas, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+                const img = new Image();
+                img.src = buf.toDataURL('image/png');
+                enemySprites.push({ img, w: rect.w, h: rect.h });
+            });
+        }
 
         function isValidImage(img) {
             return !!(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
@@ -45,6 +75,7 @@ loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
             loadSprite('heart',  'assets/heart.png');
             loadSprite('bullet', 'assets/bullet.png');
             assetsReady = true;
+            prepareAtlasSprites();
             if (pendingStart) {
                 pendingStart = false;
                 startGame();
@@ -134,13 +165,42 @@ loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
         
         const GW = 450;
         const GH = 800;
-        const desertPebbles = Array.from({ length: 10 }, () => ({
-            x: Math.random() * GW,
-            y: GH * 0.7 + Math.random() * GH * 0.3,
-            w: 6 + Math.random() * 6,
-            h: 3 + Math.random() * 3,
-            opacity: 0.15 + Math.random() * 0.15
-        }));
+        const BG_TILE_H = 320;
+        const backgroundState = {
+            offset: 0,
+            cactusLayouts: [
+                [
+                    { x: 60,  y: BG_TILE_H * 0.65, scale: 1.05, flip: false },
+                    { x: 390, y: BG_TILE_H * 0.25, scale: 0.9,  flip: true  },
+                    { x: 340, y: BG_TILE_H * 0.78, scale: 1.05, flip: false },
+                    { x: 110, y: BG_TILE_H * 0.2,  scale: 0.85, flip: false }
+                ],
+                [
+                    { x: 80,  y: BG_TILE_H * 0.35, scale: 0.95, flip: false },
+                    { x: 280, y: BG_TILE_H * 0.22, scale: 0.9,  flip: true  },
+                    { x: 400, y: BG_TILE_H * 0.62, scale: 1.1,  flip: false },
+                    { x: 60,  y: BG_TILE_H * 0.85, scale: 1.15, flip: true  }
+                ],
+                [
+                    { x: 120, y: BG_TILE_H * 0.18, scale: 0.9,  flip: false },
+                    { x: 360, y: BG_TILE_H * 0.32, scale: 0.95, flip: true  },
+                    { x: 260, y: BG_TILE_H * 0.7,  scale: 1.2,  flip: false },
+                    { x: 60,  y: BG_TILE_H * 0.62, scale: 1.05, flip: false }
+                ],
+                [
+                    { x: 40,  y: BG_TILE_H * 0.28, scale: 1.0,  flip: true  },
+                    { x: 150, y: BG_TILE_H * 0.75, scale: 1.15, flip: false },
+                    { x: 320, y: BG_TILE_H * 0.18, scale: 0.85, flip: false },
+                    { x: 420, y: BG_TILE_H * 0.58, scale: 1.1,  flip: true  }
+                ]
+            ],
+            sandSpecks: Array.from({ length: 80 }, () => ({
+                x: Math.random() * GW,
+                y: Math.random() * BG_TILE_H,
+                r: 1 + Math.random() * 2.4,
+                opacity: 0.1 + Math.random() * 0.2
+            }))
+        };
 
         const PERKS = [
             { id: 'rapid', name: 'Rapid Fire', desc: 'Spara più veloce', cost: 100, max: 5, val: (lvl) => 250 - (lvl*30) },
@@ -154,6 +214,11 @@ loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
         let savedData = JSON.parse(localStorage.getItem('arctic_save')) || { score: 2000, levels: {} }; // Bonus 2000 per test
         PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
 
+        function advanceBackground(distance) {
+            // Le dune più lontane scorrono leggermente più lente per creare parallax.
+            backgroundState.offset = (backgroundState.offset + distance) % BG_TILE_H;
+        }
+
 class Enemy {
     constructor({ x, y, isHeavy = false }) {
         this.x = x;
@@ -166,7 +231,9 @@ class Enemy {
         this.fireDelay = 0.8 + Math.random() * 0.7;
         this.fireTimer = this.fireDelay;
 
-        const sprites = [images.enemyA, images.enemyB, images.enemy1, images.enemy2].filter(Boolean);
+        const sprites = enemySprites.length
+            ? enemySprites
+            : [images.enemyA, images.enemyB, images.enemy1, images.enemy2].filter(Boolean).map(img => ({ img, w: this.size, h: this.size }));
         this.sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
         this.dead = false;
     }
@@ -190,12 +257,15 @@ class Enemy {
     }
 
             draw(ctx) {
-                const half = this.size / 2;
-
-                if (isValidImage(this.sprite)) {
-                    ctx.drawImage(this.sprite, this.x - half, this.y - half, this.size, this.size);
+                if (this.sprite && isValidImage(this.sprite.img || this.sprite)) {
+                    const meta = this.sprite.img ? this.sprite : { img: this.sprite, w: this.size, h: this.size };
+                    const targetH = this.isHeavy ? 92 : 82;
+                    const scale = targetH / meta.h;
+                    const targetW = meta.w * scale;
+                    ctx.drawImage(meta.img, this.x - targetW / 2, this.y - targetH / 2, targetW, targetH);
                 } else {
                     // fallback quadrato
+                    const half = this.size / 2;
                     ctx.fillStyle = '#b45309';
                     ctx.fillRect(this.x - half, this.y - half, this.size, this.size);
                 }
@@ -377,6 +447,7 @@ let game = {
 
             game.dist += dt * 10;
             let scrollSpeed = 150 * dt;
+            advanceBackground(scrollSpeed);
 
             if (!game.boss) {
                 if (Math.random() < 0.03) {
@@ -511,46 +582,148 @@ let game = {
             if (game.hp <= 0) gameOver();
         }
 
+        function drawCactus(x, y, scale = 1, flip = false) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(flip ? -scale : scale, scale);
+            ctx.lineCap = 'round';
+
+            ctx.strokeStyle = '#1f5536';
+            ctx.lineWidth = 18;
+            ctx.beginPath();
+            ctx.moveTo(0, 60);
+            ctx.lineTo(0, -70);
+            ctx.moveTo(0, -10);
+            ctx.lineTo(-32, -10);
+            ctx.moveTo(-32, -10);
+            ctx.lineTo(-32, 20);
+            ctx.moveTo(0, -35);
+            ctx.lineTo(26, -35);
+            ctx.moveTo(26, -35);
+            ctx.lineTo(26, -5);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#2d8a52';
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(0, 55);
+            ctx.lineTo(0, -65);
+            ctx.moveTo(0, -10);
+            ctx.lineTo(-25, -10);
+            ctx.moveTo(-25, -10);
+            ctx.lineTo(-25, 10);
+            ctx.moveTo(0, -32);
+            ctx.lineTo(22, -32);
+            ctx.moveTo(22, -32);
+            ctx.lineTo(22, -8);
+            ctx.stroke();
+
+            ctx.fillStyle = '#14532d';
+            ctx.beginPath();
+            ctx.ellipse(0, 62, 12, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.fillRect(-2, -68, 4, 115);
+
+            ctx.restore();
+        }
+
+        function drawDuneTile(baseY, palette, layoutIndex) {
+            const h = BG_TILE_H;
+
+            ctx.fillStyle = palette.base;
+            ctx.fillRect(0, baseY, GW, h);
+
+            ctx.fillStyle = palette.light;
+            ctx.beginPath();
+            ctx.moveTo(0, baseY + h * 0.18);
+            ctx.quadraticCurveTo(GW * 0.28, baseY, GW * 0.55, baseY + h * 0.22);
+            ctx.quadraticCurveTo(GW * 0.82, baseY + h * 0.35, GW, baseY + h * 0.2);
+            ctx.lineTo(GW, baseY);
+            ctx.lineTo(0, baseY);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = palette.mid;
+            ctx.beginPath();
+            ctx.moveTo(0, baseY + h * 0.55);
+            ctx.quadraticCurveTo(GW * 0.25, baseY + h * 0.48, GW * 0.5, baseY + h * 0.6);
+            ctx.quadraticCurveTo(GW * 0.75, baseY + h * 0.73, GW, baseY + h * 0.62);
+            ctx.lineTo(GW, baseY + h);
+            ctx.lineTo(0, baseY + h);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = palette.shade;
+            ctx.beginPath();
+            ctx.moveTo(GW * 0.1, baseY + h * 0.4);
+            ctx.quadraticCurveTo(GW * 0.35, baseY + h * 0.32, GW * 0.55, baseY + h * 0.45);
+            ctx.quadraticCurveTo(GW * 0.8, baseY + h * 0.62, GW, baseY + h * 0.44);
+            ctx.lineTo(GW, baseY + h * 0.6);
+            ctx.quadraticCurveTo(GW * 0.7, baseY + h * 0.48, GW * 0.45, baseY + h * 0.55);
+            ctx.quadraticCurveTo(GW * 0.2, baseY + h * 0.65, 0, baseY + h * 0.55);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.beginPath();
+            ctx.ellipse(GW * 0.65, baseY + h * 0.22, 80, 30, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            const layout = backgroundState.cactusLayouts[Math.abs(layoutIndex) % backgroundState.cactusLayouts.length];
+            layout.forEach(c => {
+                const y = baseY + c.y;
+                if (y > -80 && y < GH + 120) drawCactus(c.x, y, c.scale, c.flip);
+            });
+
+            backgroundState.sandSpecks.forEach(s => {
+                const y = baseY + s.y;
+                if (y > -10 && y < GH + 10) {
+                    ctx.fillStyle = `rgba(120, 53, 15, ${s.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawFarDunes(baseY, palette) {
+            const h = BG_TILE_H;
+            ctx.fillStyle = palette.far;
+            ctx.beginPath();
+            ctx.moveTo(0, baseY + h * 0.4);
+            ctx.quadraticCurveTo(GW * 0.3, baseY + h * 0.28, GW * 0.6, baseY + h * 0.45);
+            ctx.quadraticCurveTo(GW * 0.85, baseY + h * 0.6, GW, baseY + h * 0.46);
+            ctx.lineTo(GW, baseY + h);
+            ctx.lineTo(0, baseY + h);
+            ctx.closePath();
+            ctx.fill();
+        }
+
         function drawDesertBackground() {
             ctx.clearRect(0, 0, GW, GH);
-            const sky = ctx.createLinearGradient(0, 0, 0, GH);
-            sky.addColorStop(0, '#fde68a');
-            sky.addColorStop(0.5, '#fbbf24');
-            sky.addColorStop(1, '#f59e0b');
-            ctx.fillStyle = sky;
-            ctx.fillRect(0, 0, GW, GH);
+            const palette = {
+                base: '#dcb173',
+                light: '#f5ce92',
+                mid: '#c68747',
+                shade: '#a86a32',
+                far: '#e6b67f'
+            };
 
-            ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
-            ctx.beginPath();
-            ctx.arc(GW * 0.8, GH * 0.2, 50, 0, Math.PI * 2);
-            ctx.fill();
+            const farOffset = (backgroundState.offset * 0.55) % BG_TILE_H;
+            const nearOffset = backgroundState.offset % BG_TILE_H;
+            const tilesNeeded = Math.ceil(GH / BG_TILE_H) + 2;
 
-            ctx.fillStyle = '#f4b860';
-            ctx.beginPath();
-            ctx.moveTo(0, GH * 0.55);
-            ctx.quadraticCurveTo(GW * 0.3, GH * 0.45, GW * 0.6, GH * 0.58);
-            ctx.quadraticCurveTo(GW * 0.85, GH * 0.65, GW, GH * 0.6);
-            ctx.lineTo(GW, GH);
-            ctx.lineTo(0, GH);
-            ctx.closePath();
-            ctx.fill();
+            for (let i = -1; i < tilesNeeded; i++) {
+                const baseY = i * BG_TILE_H + farOffset - BG_TILE_H * 0.6;
+                drawFarDunes(baseY, palette);
+            }
 
-            ctx.fillStyle = '#e6a04b';
-            ctx.beginPath();
-            ctx.moveTo(0, GH * 0.65);
-            ctx.quadraticCurveTo(GW * 0.25, GH * 0.6, GW * 0.5, GH * 0.7);
-            ctx.quadraticCurveTo(GW * 0.75, GH * 0.78, GW, GH * 0.72);
-            ctx.lineTo(GW, GH);
-            ctx.lineTo(0, GH);
-            ctx.closePath();
-            ctx.fill();
-
-            desertPebbles.forEach(p => {
-                ctx.fillStyle = `rgba(120, 53, 15, ${p.opacity})`;
-                ctx.beginPath();
-                ctx.ellipse(p.x, p.y, p.w, p.h, 0, 0, Math.PI * 2);
-                ctx.fill();
-            });
+            for (let i = -1; i < tilesNeeded; i++) {
+                const baseY = i * BG_TILE_H + nearOffset;
+                drawDuneTile(baseY, palette, i);
+            }
         }
 
         function drawPlayer() {
