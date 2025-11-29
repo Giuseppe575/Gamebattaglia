@@ -27,15 +27,23 @@
             images[key] = img;
         }
 
-        // Sprite del giocatore
-        loadSprite('player', 'assets/soldier-back.svg');
-
         // Sprite di base dei nemici + atlante scena per estrarre i soldati identici al mockup
         loadSprite('enemy1', 'assets/enemy1.png');
         loadSprite('enemy2', 'assets/enemy2.png');
         loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
         loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
         loadSprite('sceneAtlas', 'scena.png'); // contiene i soldati di riferimento
+
+        // Sprite giocatore
+        const playerImg = new Image();
+        let playerImgReady = false;
+        playerImg.onload = () => { playerImgReady = true; };
+        playerImg.src = 'assets/player_soldier.png';
+        if (playerImg.complete && playerImg.naturalWidth > 0) playerImgReady = true;
+
+        const MUZZLE_OFFSET_X = 110;
+        const MUZZLE_OFFSET_Y = -30;
+        const PLAYER_ROT_OFFSET = Math.PI / 2; // sprite faces right in texture; rotate to align "up"
 
         const atlasSlices = [
             { x: 18,  y: 400, w: 150, h: 180 }, // soldato in piedi che spara (basso sinistra)
@@ -60,9 +68,7 @@
                 buf.height = rect.h;
                 const bctx = buf.getContext('2d');
                 bctx.drawImage(atlas, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
-                const img = new Image();
-                img.src = buf.toDataURL('image/png');
-                enemySprites.push({ img, w: rect.w, h: rect.h });
+                enemySprites.push({ img: buf, w: rect.w, h: rect.h });
             });
         }
 
@@ -72,8 +78,9 @@
 
         function loadAssets() {
             if (assetsReady) return;
-            loadSprite('heart',  'assets/heart.png');
-            loadSprite('bullet', 'assets/bullet.png');
+            // Inline asset fallback to avoid missing local files
+            loadSprite('heart',  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAQAAAC1HAwCAAAADklEQVR42mNk+M/wHwADoQE4CuzRLwAAAABJRU5ErkJggg==');
+            loadSprite('bullet', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAQAAAC1HAwCAAAADklEQVR42mP8z/CfBwADNwG+5nbCfQAAAABJRU5ErkJggg==');
             assetsReady = true;
             prepareAtlasSprites();
             if (pendingStart) {
@@ -279,7 +286,7 @@ class Enemy {
 
 let game = {
     running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
-    player: { x: GW/2, y: GH*0.75 },
+    player: { x: GW/2, y: GH*0.75, angle: -Math.PI / 2, muzzleTimer: 0, walkPhase: 0, walkSpeed: 0, prevX: GW/2, prevY: GH*0.75 },
     enemies: [], bullets: [], enemyBullets: [], powerups: [], bossBullets: [], boss: null,
     nextBossDist: 1000, lastTime: 0, fireTimer: 0,
     fireRate: 250, moveSpeed: 300, pickupRad: 40, scoreMult: 1
@@ -403,11 +410,15 @@ let game = {
             game.dist = 0;
             game.player.x = GW/2; 
     game.player.y = GH*0.75;
-    game.enemies = [];
-    game.bullets = [];
-    game.enemyBullets = [];
-    game.bossBullets = [];
-    game.powerups = [];
+            game.player.prevX = game.player.x;
+            game.player.prevY = game.player.y;
+            game.player.walkPhase = 0;
+            game.player.walkSpeed = 0;
+            game.enemies = [];
+            game.bullets = [];
+            game.enemyBullets = [];
+            game.bossBullets = [];
+            game.powerups = [];
             game.boss = null;
             game.nextBossDist = 1000;
             game.lastTime = performance.now();
@@ -417,7 +428,7 @@ let game = {
             gameOverMenu.classList.add('hidden');
             perksMenu.classList.add('hidden');
             
-            playerEntity.style.display = 'block';
+            playerEntity.style.display = 'none'; // keep SVG hidden, we render player via canvas sprite
             document.getElementById('bossBarContainer').style.display = 'none';
             
             console.log('Game loop starting');
@@ -448,6 +459,17 @@ let game = {
             game.dist += dt * 10;
             let scrollSpeed = 150 * dt;
             advanceBackground(scrollSpeed);
+
+            // Walk cycle detection
+            const dxMove = game.player.x - game.player.prevX;
+            const dyMove = game.player.y - game.player.prevY;
+            const distMove = Math.hypot(dxMove, dyMove);
+            game.player.walkSpeed = dt > 0 ? distMove / dt : 0;
+            if (distMove > 0.5) {
+                game.player.walkPhase += dt * 10;
+            }
+            game.player.prevX = game.player.x;
+            game.player.prevY = game.player.y;
 
             if (!game.boss) {
                 if (Math.random() < 0.03) {
@@ -494,18 +516,29 @@ let game = {
         const shot = e.update(dt, game.player);
         if (shot) game.enemyBullets.push(shot);
     });
-    game.enemies = game.enemies.filter(e => e.y < GH + 50);
-    game.powerups.forEach(p => p.y += scrollSpeed);
-    game.powerups = game.powerups.filter(p => p.y < GH + 50);
-    game.bullets.forEach(b => b.y -= 600 * dt);
-    game.bullets = game.bullets.filter(b => b.y > -20);
-    game.enemyBullets.forEach(b => { b.x += b.dx * b.speed * dt; b.y += b.dy * b.speed * dt; });
-    game.enemyBullets = game.enemyBullets.filter(b => !b.dead && b.y < GH + 30 && b.y > -30 && b.x > -30 && b.x < GW + 30);
-    game.bossBullets.forEach(b => { b.x += b.dx * 300 * dt; b.y += b.dy * 300 * dt; });
-    game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
+            game.enemies = game.enemies.filter(e => e.y < GH + 50);
+            game.powerups.forEach(p => p.y += scrollSpeed);
+            game.powerups = game.powerups.filter(p => p.y < GH + 50);
+            game.bullets.forEach(b => b.y -= 600 * dt);
+            game.bullets = game.bullets.filter(b => b.y > -20);
+            if (game.player.muzzleTimer > 0) {
+                game.player.muzzleTimer = Math.max(0, game.player.muzzleTimer - dt * 1000);
+            }
+            game.enemyBullets.forEach(b => { b.x += b.dx * b.speed * dt; b.y += b.dy * b.speed * dt; });
+            game.enemyBullets = game.enemyBullets.filter(b => !b.dead && b.y < GH + 30 && b.y > -30 && b.x > -30 && b.x < GW + 30);
+            game.bossBullets.forEach(b => { b.x += b.dx * 300 * dt; b.y += b.dy * 300 * dt; });
+            game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
 
             if (Date.now() - game.fireTimer > game.fireRate) {
-                game.bullets.push({ x: game.player.x, y: game.player.y - 25 });
+                const angle = -Math.PI / 2; // spara verso l'alto
+                game.player.angle = angle;
+                const angleForSprite = angle + PLAYER_ROT_OFFSET;
+                const cos = Math.cos(angleForSprite);
+                const sin = Math.sin(angleForSprite);
+                const muzzleX = game.player.x + MUZZLE_OFFSET_X * cos - MUZZLE_OFFSET_Y * sin;
+                const muzzleY = game.player.y + MUZZLE_OFFSET_X * sin + MUZZLE_OFFSET_Y * cos;
+                game.bullets.push({ x: muzzleX, y: muzzleY });
+                game.player.muzzleTimer = 80;
                 sounds.laser.play();
                 game.fireTimer = Date.now();
             }
@@ -703,39 +736,35 @@ let game = {
 
         function drawDesertBackground() {
             ctx.clearRect(0, 0, GW, GH);
-            const palette = {
-                base: '#dcb173',
-                light: '#f5ce92',
-                mid: '#c68747',
-                shade: '#a86a32',
-                far: '#e6b67f'
-            };
-
-            const farOffset = (backgroundState.offset * 0.55) % BG_TILE_H;
-            const nearOffset = backgroundState.offset % BG_TILE_H;
-            const tilesNeeded = Math.ceil(GH / BG_TILE_H) + 2;
-
-            for (let i = -1; i < tilesNeeded; i++) {
-                const baseY = i * BG_TILE_H + farOffset - BG_TILE_H * 0.6;
-                drawFarDunes(baseY, palette);
-            }
-
-            for (let i = -1; i < tilesNeeded; i++) {
-                const baseY = i * BG_TILE_H + nearOffset;
-                drawDuneTile(baseY, palette, i);
-            }
         }
 
         function drawPlayer() {
-            const size = 50; // dimensione dello sprite
-            if (images.player && images.player.complete) {
-                ctx.drawImage(images.player, game.player.x - size/2, game.player.y - size/2, size, size);
-            } else {
-                // fallback vecchio
-                ctx.fillStyle = '#0f0';
+            if (!playerImgReady) return;
+
+            const targetW = 280;
+            const targetH = 440;
+            const moving = game.player.walkSpeed > 20;
+            const bob = moving ? Math.sin(game.player.walkPhase) * 8 : 0;
+
+            ctx.save();
+            ctx.translate(game.player.x, game.player.y + bob);
+            ctx.rotate(game.player.angle + PLAYER_ROT_OFFSET);
+            console.log('Draw player with sprite', game.player.x, game.player.y);
+            ctx.drawImage(playerImg, -targetW / 2, -targetH / 2, targetW, targetH);
+            ctx.restore();
+
+            if (game.player.muzzleTimer > 0) {
+                ctx.save();
+                ctx.translate(game.player.x, game.player.y + bob);
+                ctx.rotate(game.player.angle + PLAYER_ROT_OFFSET);
+                ctx.fillStyle = '#ffec7a';
                 ctx.beginPath();
-                ctx.arc(game.player.x, game.player.y, 20, 0, Math.PI * 2);
+                ctx.moveTo(MUZZLE_OFFSET_X, MUZZLE_OFFSET_Y);
+                ctx.lineTo(MUZZLE_OFFSET_X + 15, MUZZLE_OFFSET_Y - 5);
+                ctx.lineTo(MUZZLE_OFFSET_X + 15, MUZZLE_OFFSET_Y + 5);
+                ctx.closePath();
                 ctx.fill();
+                ctx.restore();
             }
         }
 
@@ -785,10 +814,7 @@ let game = {
                 }
             });
 
-            if (game.running && game.hp > 0) {
-                playerEntity.style.left = (game.player.x / GW * 100) + '%';
-                playerEntity.style.top = (game.player.y / GH * 100) + '%';
-            }
+            // playerEntity DOM sprite kept hidden; rendering handled via canvas drawPlayer()
         }
 
         function loop(ts) {
