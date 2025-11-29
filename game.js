@@ -303,8 +303,8 @@
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
-                        // soglia più alta per rimuovere il bordo scuro della GIF
-                        if (r < 60 && g < 60 && b < 60) {
+                        // soglia leggermente più bassa per non erodere il soldato
+                        if (r < 45 && g < 45 && b < 45) {
                             data[i + 3] = 0;
                         }
                     }
