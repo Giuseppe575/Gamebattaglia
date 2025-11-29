@@ -137,6 +137,7 @@
         }
         .home-link:hover { color: var(--accent); }
     </style>
+    <script src="shared.js"></script>
 </head>
 <body>
     <!-- Layout aggiornato secondo il nuovo design (assets/modulonegozio.png) -->
@@ -221,7 +222,7 @@
     </div>
     <script>
         (function() {
-            const PERKS = [
+            const PERKS = (window.sharedSave && window.sharedSave.perks) || [
                 { id: 'rapid', name: 'Rapid Fire', cost: 120, max: 5 },
                 { id: 'health', name: 'Toughness', cost: 150, max: 5 },
                 { id: 'speed', name: 'Scout', cost: 140, max: 3 },
@@ -235,17 +236,15 @@
                 cards[card.dataset.perkCard] = card;
             });
 
-            function loadSave() {
+            const loadSave = () => (window.sharedSave ? window.sharedSave.loadSave() : (() => {
                 let data = JSON.parse(localStorage.getItem('arctic_save') || '{}');
                 if (!data.levels) data.levels = {};
                 if (typeof data.score !== 'number') data.score = 0;
                 PERKS.forEach(p => { if (data.levels[p.id] === undefined) data.levels[p.id] = 0; });
                 return data;
-            }
+            })());
 
-            function save(data) {
-                localStorage.setItem('arctic_save', JSON.stringify(data));
-            }
+            const save = (data) => (window.sharedSave ? window.sharedSave.save(data) : localStorage.setItem('arctic_save', JSON.stringify(data)));
 
             function render() {
                 const data = loadSave();
@@ -277,6 +276,15 @@
             }
 
             function handleBuy(id) {
+                if (window.sharedSave) {
+                    const res = window.sharedSave.buyPerk(id);
+                    if (!res.ok) {
+                        if (res.reason === 'no_funds') alert('Punti insufficienti per acquistare questo bonus.');
+                        return;
+                    }
+                    render();
+                    return;
+                }
                 let data = loadSave();
                 const perk = PERKS.find(p => p.id === id);
                 if (!perk) return;
@@ -294,6 +302,11 @@
             }
 
             function addMoneyLocal() {
+                if (window.sharedSave) {
+                    window.sharedSave.addMoney(500);
+                    render();
+                    return;
+                }
                 let data = loadSave();
                 data.score += 500;
                 save(data);
