@@ -164,7 +164,7 @@
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                         <div class="cost"><span>💎</span>120</div>
-                        <button class="btn" onclick="buyPerk && buyPerk('rapid')">ACQUISTA</button>
+                        <button class="btn buy-btn" data-perk="rapid">ACQUISTA</button>
                     </div>
                 </div>
                 <div class="perk">
@@ -175,7 +175,7 @@
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                         <div class="cost"><span>💎</span>150</div>
-                        <button class="btn" onclick="buyPerk && buyPerk('health')">ACQUISTA</button>
+                        <button class="btn buy-btn" data-perk="health">ACQUISTA</button>
                     </div>
                 </div>
                 <div class="perk">
@@ -186,7 +186,7 @@
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                         <div class="cost"><span>💎</span>140</div>
-                        <button class="btn" onclick="buyPerk && buyPerk('speed')">ACQUISTA</button>
+                        <button class="btn buy-btn" data-perk="speed">ACQUISTA</button>
                     </div>
                 </div>
                 <div class="perk">
@@ -197,7 +197,7 @@
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                         <div class="cost"><span>💎</span>160</div>
-                        <button class="btn" onclick="buyPerk && buyPerk('magnet')">ACQUISTA</button>
+                        <button class="btn buy-btn" data-perk="magnet">ACQUISTA</button>
                     </div>
                 </div>
                 <div class="perk">
@@ -208,7 +208,7 @@
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
                         <div class="cost"><span>💎</span>200</div>
-                        <button class="btn" onclick="buyPerk && buyPerk('greed')">ACQUISTA</button>
+                        <button class="btn buy-btn" data-perk="greed">ACQUISTA</button>
                     </div>
                 </div>
             </div>
@@ -219,5 +219,27 @@
             </div>
         </div>
     </div>
+    <script>
+        (function() {
+            const pointsEl = document.getElementById('shopPoints');
+            const saved = JSON.parse(localStorage.getItem('arctic_save') || '{}');
+            if (pointsEl && saved.score !== undefined) {
+                pointsEl.textContent = Math.floor(saved.score);
+            }
+            function handleBuy(id) {
+                if (typeof window.buyPerk === 'function') {
+                    window.buyPerk(id);
+                    return;
+                }
+                alert('Apri il gioco per acquistare questo bonus.');
+            }
+            document.querySelectorAll('.buy-btn[data-perk]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleBuy(btn.dataset.perk);
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
