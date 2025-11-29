@@ -303,7 +303,8 @@
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
-                        if (r < 20 && g < 20 && b < 20) {
+                        // soglia più alta per rimuovere il bordo scuro della GIF
+                        if (r < 60 && g < 60 && b < 60) {
                             data[i + 3] = 0;
                         }
                     }
