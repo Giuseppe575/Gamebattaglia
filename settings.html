@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desert Assault - Impostazioni</title>
+    <style>
+        :root {
+            --bg: #18100f;
+            --card: #231715;
+            --border: #382522;
+            --muted: #cbd5e1;
+            --accent: #f97316;
+            --accent-2: #fbbf24;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: #f8fafc;
+            padding: 18px 12px 24px;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #120c0b;
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+        }
+        .section {
+            margin-top: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+        }
+        .section h3 {
+            margin: 0 0 10px;
+            color: var(--accent-2);
+            letter-spacing: 0.6px;
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 6px;
+            border-radius: 10px;
+        }
+        .row + .row { border-top: 1px solid var(--border); }
+        .label { color: #f8fafc; font-weight: 700; }
+        .value { color: var(--muted); font-weight: 600; }
+        input[type=range] { width: 140px; accent-color: var(--accent); }
+        .switch {
+            position: relative; width: 46px; height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: #4b5563; border-radius: 999px;
+            transition: .2s;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background: white; border-radius: 50%;
+            transition: .2s;
+        }
+        .switch input:checked + .slider { background: #22c55e; }
+        .switch input:checked + .slider:before { transform: translateX(22px); }
+        .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            background: #312524;
+            color: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .btn.active { border-color: var(--accent); color: var(--accent-2); }
+        .logout {
+            margin-top: 16px;
+            width: 100%;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: #fef2f2;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 12px 22px rgba(220,38,38,0.35);
+        }
+        .links { display: flex; flex-direction: column; gap: 6px; }
+        .links a { color: var(--muted); text-decoration: none; font-weight: 700; }
+        .links a:hover { color: var(--accent-2); }
+        .home-link {
+            position: absolute;
+            top: 12px; right: 14px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+        .home-link:hover { color: var(--accent-2); }
+    </style>
+</head>
+<body>
+    <!-- Layout aggiornato secondo il nuovo design (assets/impostazioni.png) -->
+    <a class="home-link" href="index.html">← Torna al gioco</a>
+    <div class="topbar">
+        <button onclick="history.back()" style="background:none;border:none;color:#fef2f2;font-size:18px;cursor:pointer;">←</button>
+        <div style="font-weight:800; letter-spacing:0.8px;">Impostazioni</div>
+    </div>
+
+    <div class="section" id="audioSection">
+        <h3>AUDIO</h3>
+        <div class="row">
+            <div class="label">Volume Principale</div>
+            <div class="controls">
+                <input type="range" id="volMaster" min="0" max="100" value="70" oninput="updateRange('volMaster')">
+                <span class="value" id="val-volMaster">70%</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="label">Volume Musica</div>
+            <div class="controls">
+                <input type="range" id="volMusic" min="0" max="100" value="60" oninput="updateRange('volMusic')">
+                <span class="value" id="val-volMusic">60%</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="label">Volume SFX</div>
+            <div class="controls">
+                <input type="range" id="volSfx" min="0" max="100" value="80" oninput="updateRange('volSfx')">
+                <span class="value" id="val-volSfx">80%</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="label">Chat Vocale</div>
+            <label class="switch">
+                <input type="checkbox" id="voiceChat" onchange="toggleSwitch('voiceChat')">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>CONTROLLI</h3>
+        <div class="row">
+            <div class="label">Personalizza Layout</div>
+            <div class="value">></div>
+        </div>
+        <div class="row">
+            <div class="label">Inverti Asse Y</div>
+            <label class="switch">
+                <input type="checkbox" id="invertY" onchange="toggleSwitch('invertY')">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>GRAFICA</h3>
+        <div class="row">
+            <div class="label">Qualità</div>
+            <div class="buttons">
+                <button class="btn" data-key="quality" data-val="low" onclick="selectBtn(this)">Bassa</button>
+                <button class="btn active" data-key="quality" data-val="medium" onclick="selectBtn(this)">Media</button>
+                <button class="btn" data-key="quality" data-val="high" onclick="selectBtn(this)">Alta</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="label">Limite Frame Rate</div>
+            <div class="buttons">
+                <button class="btn" data-key="fps" data-val="30" onclick="selectBtn(this)">30 FPS</button>
+                <button class="btn active" data-key="fps" data-val="60" onclick="selectBtn(this)">60 FPS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>ACCOUNT</h3>
+        <div class="row">
+            <div class="label">Player ID</div>
+            <div class="value" id="playerId">#GA-102938</div>
+        </div>
+        <div class="row">
+            <div class="label">Account Collegato</div>
+            <div class="value" style="color:#22c55e;">✔ Play Games</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>NOTIFICHE</h3>
+        <div class="row">
+            <div class="label">Notifiche Push</div>
+            <label class="switch">
+                <input type="checkbox" id="pushNotifs" onchange="toggleSwitch('pushNotifs')">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>LEGALE & SUPPORTO</h3>
+        <div class="links">
+            <a href="#">Informativa sulla Privacy</a>
+            <a href="#">Termini di Servizio</a>
+            <a href="#">Supporto</a>
+        </div>
+    </div>
+
+    <button class="logout">LOGOUT</button>
+
+    <script>
+        const keys = ['volMaster','volMusic','volSfx','voiceChat','invertY','quality','fps','pushNotifs'];
+        function loadConfig() {
+            keys.forEach(k => {
+                const v = localStorage.getItem('settings_' + k);
+                if (v !== null) {
+                    if (k.startsWith('vol')) {
+                        const el = document.getElementById(k);
+                        el.value = v;
+                        updateRange(k);
+                    } else if (k === 'quality' || k === 'fps') {
+                        document.querySelectorAll('[data-key="'+k+'"]').forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.val === v);
+                        });
+                    } else {
+                        const el = document.getElementById(k);
+                        if (el) el.checked = v === '1';
+                    }
+                }
+            });
+        }
+        function save(key, val) {
+            localStorage.setItem('settings_' + key, val);
+        }
+        function updateRange(id) {
+            const el = document.getElementById(id);
+            document.getElementById('val-' + id).textContent = el.value + '%';
+            save(id, el.value);
+        }
+        function toggleSwitch(id) {
+            const el = document.getElementById(id);
+            save(id, el.checked ? '1' : '0');
+        }
+        function selectBtn(btn) {
+            const key = btn.dataset.key;
+            document.querySelectorAll('[data-key="'+key+'"]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            save(key, btn.dataset.val);
+        }
+        loadConfig();
+    </script>
+</body>
+</html>

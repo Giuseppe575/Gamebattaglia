@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desert Assault - Negozio Bonus</title>
+    <style>
+        :root {
+            --bg: #111827;
+            --panel: #1f2937;
+            --muted: #9ca3af;
+            --accent: #f97316;
+            --accent-2: #fbbf24;
+            --card: #111827;
+            --border: #1f2937;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            padding: 24px 12px 32px;
+        }
+        .container {
+            width: min(520px, 95vw);
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .title h1 {
+            margin: 0;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 26px;
+            font-weight: 900;
+        }
+        .title small {
+            color: #d1d5db;
+            letter-spacing: 0.5px;
+        }
+        .panel {
+            margin-top: 14px;
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 18px 16px;
+            border: 1px solid #0f172a;
+            box-shadow: 0 12px 22px rgba(0,0,0,0.25);
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: #f9fafb;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .row .subtitle { color: var(--muted); font-weight: 600; font-size: 13px; }
+        .perks-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .perk {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 12px;
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+        .perk h3 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 15px;
+            letter-spacing: 0.4px;
+        }
+        .perk .desc { margin: 2px 0 6px; color: var(--muted); font-size: 13px; }
+        .dots { display: flex; gap: 6px; }
+        .dot {
+            width: 10px; height: 10px;
+            border-radius: 999px;
+            background: #374151;
+        }
+        .dot.active { background: var(--accent); }
+        .cost {
+            text-align: right;
+            color: #fef3c7;
+            font-weight: 700;
+        }
+        .cost span { color: var(--accent-2); margin-left: 4px; }
+        .btn {
+            background: linear-gradient(90deg, #facc15, #fbbf24);
+            color: #1f2937;
+            font-weight: 900;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 14px rgba(251,191,36,0.25);
+        }
+        .footer-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn-cheat {
+            background: linear-gradient(90deg, #facc15, #f59e0b);
+            color: #1f2937;
+            font-weight: 900;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 18px rgba(245,158,11,0.3);
+        }
+        .btn-back {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: #fef2f2;
+            font-weight: 900;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 18px rgba(220,38,38,0.35);
+        }
+        .home-link {
+            position: absolute;
+            top: 12px; right: 16px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .home-link:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <!-- Layout aggiornato secondo il nuovo design (assets/modulonegozio.png) -->
+    <a class="home-link" href="index.html">← Torna al gioco</a>
+    <div class="container">
+        <div class="title">
+            <h1>DESERT ASSAULT</h1>
+            <small>Soldier Edition</small>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div>
+                    <div style="color:#fef3c7;font-weight:800;">NEGOZIO BONUS</div>
+                    <div class="subtitle">Potenzia il tuo soldato</div>
+                </div>
+                <div class="cost">Punti <span id="shopPoints">0</span> 💎</div>
+            </div>
+            <div class="perks-list" id="shopPerks">
+                <!-- Perk cards -->
+                <div class="perk">
+                    <div>
+                        <h3>Rapid Fire <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <div class="desc">Spara più velocemente.</div>
+                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                        <div class="cost"><span>💎</span>120</div>
+                        <button class="btn" onclick="buyPerk && buyPerk('rapid')">ACQUISTA</button>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div>
+                        <h3>Toughness <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <div class="desc">Aumenta la salute iniziale.</div>
+                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                        <div class="cost"><span>💎</span>150</div>
+                        <button class="btn" onclick="buyPerk && buyPerk('health')">ACQUISTA</button>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div>
+                        <h3>Scout <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <div class="desc">Aumenta la velocità di movimento.</div>
+                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                        <div class="cost"><span>💎</span>140</div>
+                        <button class="btn" onclick="buyPerk && buyPerk('speed')">ACQUISTA</button>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div>
+                        <h3>Magnet <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <div class="desc">Aumenta il raggio di raccolta bonus.</div>
+                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                        <div class="cost"><span>💎</span>160</div>
+                        <button class="btn" onclick="buyPerk && buyPerk('magnet')">ACQUISTA</button>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div>
+                        <h3>Greed <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <div class="desc">Moltiplicatore punti extra.</div>
+                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                        <div class="cost"><span>💎</span>200</div>
+                        <button class="btn" onclick="buyPerk && buyPerk('greed')">ACQUISTA</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button class="btn-cheat" onclick="addMoney && addMoney()">AGGIUNGI 500 PUNTI</button>
+                <button class="btn-back" onclick="window.location.href='index.html'">INDIETRO</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

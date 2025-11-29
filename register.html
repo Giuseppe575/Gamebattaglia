@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desert Assault - Registrazione</title>
+    <style>
+        :root {
+            --bg: #f1f1f1;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --accent: #f97316;
+            --border: #e5e7eb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: var(--text);
+        }
+        .card {
+            width: min(420px, 92vw);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 16px 30px rgba(0,0,0,0.08);
+            padding: 28px 26px 24px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .logo h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 900;
+        }
+        .logo small {
+            display: block;
+            margin-top: 4px;
+            color: #9ca3af;
+            letter-spacing: 0.5px;
+        }
+        form { display: flex; flex-direction: column; gap: 12px; }
+        label { font-size: 13px; color: var(--muted); }
+        .input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: #fafafa;
+        }
+        .input-wrap span { color: var(--muted); font-size: 14px; }
+        .input-wrap input {
+            border: none; outline: none; flex: 1;
+            background: transparent; font-size: 14px; color: var(--text);
+        }
+        .btn {
+            margin-top: 6px;
+            background: linear-gradient(90deg, #fb923c, #f97316);
+            color: white; border: none; border-radius: 12px;
+            padding: 12px; font-weight: 800; letter-spacing: 0.6px;
+            cursor: pointer; box-shadow: 0 10px 20px rgba(249,115,22,0.25);
+        }
+        .btn:hover { opacity: 0.95; }
+        .foot-row { text-align: center; font-size: 13px; margin-top: 14px; }
+        a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
+        .home-link {
+            position: absolute;
+            top: 12px; right: 14px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .home-link:hover { color: var(--accent); }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+        .back-btn:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <!-- Layout aggiornato secondo il nuovo design (assets/registrazione.png) -->
+    <a class="home-link" href="index.html">← Torna al gioco</a>
+    <div class="card">
+        <a class="back-btn" href="index.html">← Indietro</a>
+        <div class="logo">
+            <h1>DESERT ASSAULT</h1>
+            <small>Soldier Edition</small>
+        </div>
+        <form id="registerForm">
+            <label for="reg-username">Username</label>
+            <div class="input-wrap">
+                <span>👤</span>
+                <input id="reg-username" name="username" type="text" placeholder="Username" required>
+            </div>
+            <label for="reg-email">Email</label>
+            <div class="input-wrap">
+                <span>✉️</span>
+                <input id="reg-email" name="email" type="email" placeholder="Email" required>
+            </div>
+            <label for="reg-password">Password</label>
+            <div class="input-wrap">
+                <span>🔒</span>
+                <input id="reg-password" name="password" type="password" placeholder="Password" required>
+            </div>
+            <label for="reg-confirm">Confirm Password</label>
+            <div class="input-wrap">
+                <span>🔒</span>
+                <input id="reg-confirm" name="confirm" type="password" placeholder="Confirm Password" required>
+            </div>
+            <button type="submit" class="btn">REGISTER</button>
+        </form>
+        <div class="foot-row">
+            Already have an account?
+            <a href="login.html">Log in</a>
+        </div>
+    </div>
+</body>
+</html>
