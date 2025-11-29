@@ -40,6 +40,26 @@
         playerImg.onload = () => { playerImgReady = true; };
         playerImg.src = 'assets/player_soldier.png';
         if (playerImg.complete && playerImg.naturalWidth > 0) playerImgReady = true;
+        const playerRunFrames = [];
+        let playerRunReady = false;
+        let playerIdleImg = null;
+        (function loadPlayerRunFrames() {
+            const files = Array.from({ length: 12 }, (_, i) => {
+                const idx = String(i + 1).padStart(2, '0');
+                return `assets/player_run/run_${idx}.png`;
+            });
+            let loaded = 0;
+            files.forEach((src, i) => {
+                const img = new Image();
+                img.onload = () => {
+                    loaded++;
+                    if (!playerIdleImg) playerIdleImg = img;
+                    if (loaded === files.length) playerRunReady = true;
+                };
+                img.src = src;
+                playerRunFrames[i] = img;
+            });
+        })();
 
         const MUZZLE_OFFSET_X = 110;
         const MUZZLE_OFFSET_Y = -30;
@@ -286,7 +306,12 @@ class Enemy {
 
 let game = {
     running: false, hp: 10, maxHp: 10, score: 0, dist: 0,
-    player: { x: GW/2, y: GH*0.75, angle: -Math.PI / 2, muzzleTimer: 0, walkPhase: 0, walkSpeed: 0, prevX: GW/2, prevY: GH*0.75 },
+    player: {
+        x: GW/2, y: GH*0.75,
+        angle: -Math.PI / 2, muzzleTimer: 0,
+        walkPhase: 0, walkSpeed: 0, prevX: GW/2, prevY: GH*0.75,
+        state: 'idle', animFrame: 0, animTimer: 0
+    },
     enemies: [], bullets: [], enemyBullets: [], powerups: [], bossBullets: [], boss: null,
     nextBossDist: 1000, lastTime: 0, fireTimer: 0,
     fireRate: 250, moveSpeed: 300, pickupRad: 40, scoreMult: 1
@@ -414,6 +439,9 @@ let game = {
             game.player.prevY = game.player.y;
             game.player.walkPhase = 0;
             game.player.walkSpeed = 0;
+            game.player.state = 'idle';
+            game.player.animFrame = 0;
+            game.player.animTimer = 0;
             game.enemies = [];
             game.bullets = [];
             game.enemyBullets = [];
@@ -470,6 +498,19 @@ let game = {
             }
             game.player.prevX = game.player.x;
             game.player.prevY = game.player.y;
+            if (game.player.walkSpeed > 20) {
+                game.player.state = 'run';
+                game.player.animTimer += dt * 1000;
+                const frameInterval = 80;
+                if (game.player.animTimer >= frameInterval) {
+                    game.player.animFrame = (game.player.animFrame + 1) % playerRunFrames.length;
+                    game.player.animTimer = 0;
+                }
+            } else {
+                game.player.state = 'idle';
+                game.player.animFrame = 0;
+                game.player.animTimer = 0;
+            }
 
             if (!game.boss) {
                 if (Math.random() < 0.03) {
@@ -745,12 +786,16 @@ let game = {
             const targetH = 440;
             const moving = game.player.walkSpeed > 20;
             const bob = moving ? Math.sin(game.player.walkPhase) * 8 : 0;
+            let img = playerIdleImg || playerImg;
+            if (game.player.state === 'run' && playerRunReady && playerRunFrames[game.player.animFrame]) {
+                img = playerRunFrames[game.player.animFrame];
+            }
 
             ctx.save();
             ctx.translate(game.player.x, game.player.y + bob);
             ctx.rotate(game.player.angle + PLAYER_ROT_OFFSET);
             console.log('Draw player with sprite', game.player.x, game.player.y);
-            ctx.drawImage(playerImg, -targetW / 2, -targetH / 2, targetW, targetH);
+            if (img) ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
             ctx.restore();
 
             if (game.player.muzzleTimer > 0) {
