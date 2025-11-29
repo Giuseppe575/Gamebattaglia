@@ -61,9 +61,10 @@
             });
         })();
 
-        const MUZZLE_OFFSET_X = 110;
-        const MUZZLE_OFFSET_Y = -30;
+        const MUZZLE_OFFSET_X = 60;
+        const MUZZLE_OFFSET_Y = -10;
         const PLAYER_ROT_OFFSET = Math.PI / 2; // sprite faces right in texture; rotate to align "up"
+        const PLAYER_ANGLE_OFFSET = -0.3; // correzione base per fucile orizzontale
 
         const atlasSlices = [
             { x: 18,  y: 400, w: 150, h: 180 }, // soldato in piedi che spara (basso sinistra)
@@ -194,7 +195,7 @@
         const GH = 800;
         const BG_TILE_H = 320;
         const backgroundState = {
-            offset: 0,
+            offsetY: 0, // scrolling changed from horizontal (X) to vertical (Y)
             cactusLayouts: [
                 [
                     { x: 60,  y: BG_TILE_H * 0.65, scale: 1.05, flip: false },
@@ -242,8 +243,8 @@
         PERKS.forEach(p => { if(savedData.levels[p.id] === undefined) savedData.levels[p.id] = 0; });
 
         function advanceBackground(distance) {
-            // Le dune più lontane scorrono leggermente più lente per creare parallax.
-            backgroundState.offset = (backgroundState.offset + distance) % BG_TILE_H;
+            // Scrolling verticale: prima usavamo offset su X, ora accumuliamo su Y per movimento bottom->top.
+            backgroundState.offsetY = (backgroundState.offsetY + distance) % BG_TILE_H;
         }
 
 class Enemy {
@@ -517,8 +518,8 @@ let game = {
                     const isHeavy = Math.random() > 0.75;
                     game.enemies.push(
                         new Enemy({
-                            x: Math.random() * (GW - 40) + 20,
-                            y: -50,
+                            x: GW + 50,
+                            y: Math.random() * (GH - 140) + 70,
                             isHeavy
                         })
                     );
@@ -526,7 +527,7 @@ let game = {
                 if (Math.random() < 0.005) {
                     let type = Math.random() > 0.5 ? 'hp' : 'coin';
                     game.powerups.push({
-                        x: Math.random() * (GW - 40) + 20, y: -50,
+                        x: GW + 50, y: Math.random() * (GH - 100) + 50,
                         type: type,
                         color: type === 'hp' ? '#EF4444' : '#FBBF24',
                         label: type === 'hp' ? '❤️' : '💎'
@@ -558,10 +559,10 @@ let game = {
         if (shot) game.enemyBullets.push(shot);
     });
             game.enemies = game.enemies.filter(e => e.y < GH + 50);
-            game.powerups.forEach(p => p.y += scrollSpeed);
-            game.powerups = game.powerups.filter(p => p.y < GH + 50);
-            game.bullets.forEach(b => b.y -= 600 * dt);
-            game.bullets = game.bullets.filter(b => b.y > -20);
+            game.powerups.forEach(p => p.x -= scrollSpeed); // move left with scrolling
+            game.powerups = game.powerups.filter(p => p.x > -50);
+            game.bullets.forEach(b => b.x += 600 * dt); // bullets fly to the right now
+            game.bullets = game.bullets.filter(b => b.x < GW + 50);
             if (game.player.muzzleTimer > 0) {
                 game.player.muzzleTimer = Math.max(0, game.player.muzzleTimer - dt * 1000);
             }
@@ -571,9 +572,9 @@ let game = {
             game.bossBullets = game.bossBullets.filter(b => b.y < GH+20 && b.y > -20 && b.x > -20 && b.x < GW+20);
 
             if (Date.now() - game.fireTimer > game.fireRate) {
-                const angle = -Math.PI / 2; // spara verso l'alto
+                const angle = 0; // spara verso destra per inseguire nemici che arrivano da destra
                 game.player.angle = angle;
-                const angleForSprite = angle + PLAYER_ROT_OFFSET;
+                const angleForSprite = angle + PLAYER_ROT_OFFSET + PLAYER_ANGLE_OFFSET;
                 const cos = Math.cos(angleForSprite);
                 const sin = Math.sin(angleForSprite);
                 const muzzleX = game.player.x + MUZZLE_OFFSET_X * cos - MUZZLE_OFFSET_Y * sin;
@@ -777,13 +778,14 @@ let game = {
 
         function drawDesertBackground() {
             ctx.clearRect(0, 0, GW, GH);
+            // Sfondo video: nessun disegno canvas, solo clearing (scorrimento gestito da offsetY per logica).
         }
 
         function drawPlayer() {
             if (!playerImgReady) return;
 
-            const targetW = 280;
-            const targetH = 440;
+            const targetW = 260;  // più largo
+            const targetH = 220;  // più compatto
             const moving = game.player.walkSpeed > 20;
             const bob = moving ? Math.sin(game.player.walkPhase) * 8 : 0;
             let img = playerIdleImg || playerImg;
@@ -793,7 +795,7 @@ let game = {
 
             ctx.save();
             ctx.translate(game.player.x, game.player.y + bob);
-            ctx.rotate(game.player.angle + PLAYER_ROT_OFFSET);
+            // Rotazione disattivata: sprite già orientato in posa corretta
             console.log('Draw player with sprite', game.player.x, game.player.y);
             if (img) ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
             ctx.restore();
@@ -801,12 +803,12 @@ let game = {
             if (game.player.muzzleTimer > 0) {
                 ctx.save();
                 ctx.translate(game.player.x, game.player.y + bob);
-                ctx.rotate(game.player.angle + PLAYER_ROT_OFFSET);
+                // Rotazione disattivata anche per il flash: resta in coordinate locali
                 ctx.fillStyle = '#ffec7a';
                 ctx.beginPath();
                 ctx.moveTo(MUZZLE_OFFSET_X, MUZZLE_OFFSET_Y);
-                ctx.lineTo(MUZZLE_OFFSET_X + 15, MUZZLE_OFFSET_Y - 5);
-                ctx.lineTo(MUZZLE_OFFSET_X + 15, MUZZLE_OFFSET_Y + 5);
+                ctx.lineTo(MUZZLE_OFFSET_X + 20, MUZZLE_OFFSET_Y - 5);
+                ctx.lineTo(MUZZLE_OFFSET_X + 20, MUZZLE_OFFSET_Y + 5);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
