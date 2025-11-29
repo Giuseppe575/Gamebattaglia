@@ -135,5 +135,25 @@
             <a href="register.html">Create Account</a>
         </div>
     </div>
+
+    <script>
+        (function() {
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const user = document.getElementById('username')?.value || '';
+                    localStorage.setItem('loggedIn', '1');
+                    if (user) localStorage.setItem('playerName', user);
+                    window.location.href = 'index.html';
+                });
+            }
+            const forgot = document.getElementById('forgotLink');
+            if (forgot) forgot.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Recupero password non configurato in questa demo.');
+            });
+        })();
+    </script>
 </body>
 </html>

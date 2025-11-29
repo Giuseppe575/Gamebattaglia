@@ -6,6 +6,15 @@
     <title>Desert Assault - Unlocked</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Se non è presente una sessione di login, rimanda alla pagina di login
+        (function() {
+            const logged = localStorage.getItem('loggedIn') === '1';
+            if (!logged) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
 </head>
 <body>
     <div id="gameContainer">

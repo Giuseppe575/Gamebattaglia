@@ -130,5 +130,21 @@
             <a href="login.html">Log in</a>
         </div>
     </div>
+
+    <script>
+        (function() {
+            const form = document.getElementById('registerForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // Minimal placeholder: salva dati base e rimanda al login
+                    localStorage.setItem('reg_username', document.getElementById('reg-username')?.value || '');
+                    localStorage.setItem('reg_email', document.getElementById('reg-email')?.value || '');
+                    alert('Registrazione salvata. Ora effettua il login.');
+                    window.location.href = 'login.html';
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
