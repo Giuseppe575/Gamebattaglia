@@ -156,58 +156,58 @@
             </div>
             <div class="perks-list" id="shopPerks">
                 <!-- Perk cards -->
-                <div class="perk">
+                <div class="perk" data-perk-card="rapid">
                     <div>
-                        <h3>Rapid Fire <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <h3>Rapid Fire <span class="lvl" style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
                         <div class="desc">Spara più velocemente.</div>
-                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                        <div class="dots" data-dots="rapid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-                        <div class="cost"><span>💎</span>120</div>
+                        <div class="cost"><span>💎</span><span class="cost-val">120</span></div>
                         <button class="btn buy-btn" data-perk="rapid">ACQUISTA</button>
                     </div>
                 </div>
-                <div class="perk">
+                <div class="perk" data-perk-card="health">
                     <div>
-                        <h3>Toughness <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <h3>Toughness <span class="lvl" style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
                         <div class="desc">Aumenta la salute iniziale.</div>
-                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                        <div class="dots" data-dots="health"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-                        <div class="cost"><span>💎</span>150</div>
+                        <div class="cost"><span>💎</span><span class="cost-val">150</span></div>
                         <button class="btn buy-btn" data-perk="health">ACQUISTA</button>
                     </div>
                 </div>
-                <div class="perk">
+                <div class="perk" data-perk-card="speed">
                     <div>
-                        <h3>Scout <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <h3>Scout <span class="lvl" style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
                         <div class="desc">Aumenta la velocità di movimento.</div>
-                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                        <div class="dots" data-dots="speed"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-                        <div class="cost"><span>💎</span>140</div>
+                        <div class="cost"><span>💎</span><span class="cost-val">140</span></div>
                         <button class="btn buy-btn" data-perk="speed">ACQUISTA</button>
                     </div>
                 </div>
-                <div class="perk">
+                <div class="perk" data-perk-card="magnet">
                     <div>
-                        <h3>Magnet <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <h3>Magnet <span class="lvl" style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
                         <div class="desc">Aumenta il raggio di raccolta bonus.</div>
-                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                        <div class="dots" data-dots="magnet"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-                        <div class="cost"><span>💎</span>160</div>
+                        <div class="cost"><span>💎</span><span class="cost-val">160</span></div>
                         <button class="btn buy-btn" data-perk="magnet">ACQUISTA</button>
                     </div>
                 </div>
-                <div class="perk">
+                <div class="perk" data-perk-card="greed">
                     <div>
-                        <h3>Greed <span style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
+                        <h3>Greed <span class="lvl" style="color:#f3f4f6;font-weight:700;">Lv.0</span></h3>
                         <div class="desc">Moltiplicatore punti extra.</div>
-                        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+                        <div class="dots" data-dots="greed"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div>
                     <div style="text-align:right; display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-                        <div class="cost"><span>💎</span>200</div>
+                        <div class="cost"><span>💎</span><span class="cost-val">200</span></div>
                         <button class="btn buy-btn" data-perk="greed">ACQUISTA</button>
                     </div>
                 </div>
@@ -221,24 +221,96 @@
     </div>
     <script>
         (function() {
+            const PERKS = [
+                { id: 'rapid', name: 'Rapid Fire', cost: 120, max: 5 },
+                { id: 'health', name: 'Toughness', cost: 150, max: 5 },
+                { id: 'speed', name: 'Scout', cost: 140, max: 3 },
+                { id: 'magnet', name: 'Magnet', cost: 160, max: 4 },
+                { id: 'greed', name: 'Greed', cost: 200, max: 3 }
+            ];
+
             const pointsEl = document.getElementById('shopPoints');
-            const saved = JSON.parse(localStorage.getItem('arctic_save') || '{}');
-            if (pointsEl && saved.score !== undefined) {
-                pointsEl.textContent = Math.floor(saved.score);
+            const cards = {};
+            document.querySelectorAll('[data-perk-card]').forEach(card => {
+                cards[card.dataset.perkCard] = card;
+            });
+
+            function loadSave() {
+                let data = JSON.parse(localStorage.getItem('arctic_save') || '{}');
+                if (!data.levels) data.levels = {};
+                if (typeof data.score !== 'number') data.score = 0;
+                PERKS.forEach(p => { if (data.levels[p.id] === undefined) data.levels[p.id] = 0; });
+                return data;
             }
+
+            function save(data) {
+                localStorage.setItem('arctic_save', JSON.stringify(data));
+            }
+
+            function render() {
+                const data = loadSave();
+                if (pointsEl) pointsEl.textContent = Math.floor(data.score);
+                PERKS.forEach(p => {
+                    const card = cards[p.id];
+                    if (!card) return;
+                    const lvl = data.levels[p.id] || 0;
+                    const cost = p.cost * (lvl + 1);
+                    const lvlEl = card.querySelector('.lvl');
+                    const costEl = card.querySelector('.cost-val');
+                    if (lvlEl) lvlEl.textContent = `Lv.${lvl}`;
+                    if (costEl) costEl.textContent = cost;
+                    const dots = card.querySelectorAll('.dots .dot');
+                    dots.forEach((d, i) => d.classList.toggle('active', i < lvl));
+                    const btn = card.querySelector('.buy-btn');
+                    if (btn) {
+                        if (lvl >= p.max) {
+                            btn.textContent = 'MAX';
+                            btn.disabled = true;
+                            btn.style.opacity = '0.6';
+                        } else {
+                            btn.textContent = 'ACQUISTA';
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                        }
+                    }
+                });
+            }
+
             function handleBuy(id) {
-                if (typeof window.buyPerk === 'function') {
-                    window.buyPerk(id);
-                    return;
+                let data = loadSave();
+                const perk = PERKS.find(p => p.id === id);
+                if (!perk) return;
+                const lvl = data.levels[id] || 0;
+                if (lvl >= perk.max) return;
+                const cost = perk.cost * (lvl + 1);
+                if (data.score >= cost) {
+                    data.score -= cost;
+                    data.levels[id] = lvl + 1;
+                    save(data);
+                    render();
+                } else {
+                    alert('Punti insufficienti per acquistare questo bonus.');
                 }
-                alert('Apri il gioco per acquistare questo bonus.');
             }
+
+            function addMoneyLocal() {
+                let data = loadSave();
+                data.score += 500;
+                save(data);
+                render();
+            }
+
             document.querySelectorAll('.buy-btn[data-perk]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     handleBuy(btn.dataset.perk);
                 });
             });
+
+            const cheatBtn = document.querySelector('.btn-cheat');
+            if (cheatBtn) cheatBtn.addEventListener('click', (e) => { e.preventDefault(); addMoneyLocal(); });
+
+            render();
         })();
     </script>
 </body>
