@@ -20,6 +20,8 @@
         const images = {};
         let assetsReady = false;
         let pendingStart = false;
+        const enemyCanvas = document.createElement('canvas');
+        const enemyCtx = enemyCanvas.getContext('2d');
 
         function loadSprite(key, src) {
             const img = new Image();
@@ -291,7 +293,22 @@
                 if (!this.isHeavy && enemy1Img && enemy1Img.complete) {
                     const enemyW = 220;
                     const enemyH = 260;
-                    ctx.drawImage(enemy1Img, this.x - enemyW / 2, this.y - enemyH / 2, enemyW, enemyH);
+                    enemyCanvas.width = enemyW;
+                    enemyCanvas.height = enemyH;
+                    enemyCtx.clearRect(0, 0, enemyW, enemyH);
+                    enemyCtx.drawImage(enemy1Img, 0, 0, enemyW, enemyH);
+                    const imageData = enemyCtx.getImageData(0, 0, enemyW, enemyH);
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        if (r < 20 && g < 20 && b < 20) {
+                            data[i + 3] = 0;
+                        }
+                    }
+                    enemyCtx.putImageData(imageData, 0, 0);
+                    ctx.drawImage(enemyCanvas, this.x - enemyW / 2, this.y - enemyH / 2, enemyW, enemyH);
                 } else if (this.sprite && isValidImage(this.sprite.img || this.sprite)) {
                     const meta = this.sprite.img ? this.sprite : { img: this.sprite, w: this.size, h: this.size };
                     const targetH = this.isHeavy ? 92 : 82;
