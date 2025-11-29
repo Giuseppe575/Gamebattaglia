@@ -28,7 +28,10 @@
         }
 
         // Sprite di base dei nemici + atlante scena per estrarre i soldati identici al mockup
-        loadSprite('enemy1', 'assets/enemy1.png');
+        // [OLD] Sprite precedente per enemy1 (non più utilizzato)
+        // loadSprite('enemy1', 'assets/enemy1.png');
+        const enemy1Img = new Image();
+        enemy1Img.src = "assets/enemy1gif.gif";
         loadSprite('enemy2', 'assets/enemy2.png');
         loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
         loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
@@ -247,24 +250,24 @@
             backgroundState.offsetY = (backgroundState.offsetY + distance) % BG_TILE_H;
         }
 
-class Enemy {
-    constructor({ x, y, isHeavy = false }) {
-        this.x = x;
-        this.y = y;
-        this.isHeavy = isHeavy;
-        this.size = isHeavy ? 45 : 35;
+        class Enemy {
+            constructor({ x, y, isHeavy = false }) {
+                this.x = x;
+                this.y = y;
+                this.isHeavy = isHeavy;
+                this.size = isHeavy ? 45 : 35;
         this.hp = isHeavy ? 3 : 1;
         this.speed = 140;
         this.score = isHeavy ? 20 : 10;
         this.fireDelay = 0.8 + Math.random() * 0.7;
         this.fireTimer = this.fireDelay;
 
-        const sprites = enemySprites.length
-            ? enemySprites
-            : [images.enemyA, images.enemyB, images.enemy1, images.enemy2].filter(Boolean).map(img => ({ img, w: this.size, h: this.size }));
-        this.sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
-        this.dead = false;
-    }
+                const sprites = enemySprites.length
+                    ? enemySprites
+                    : [images.enemyA, images.enemyB, enemy1Img, images.enemy2].filter(Boolean).map(img => ({ img, w: this.size, h: this.size }));
+                this.sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
+                this.dead = false;
+            }
 
     update(dt, player) {
         const dx = player.x - this.x;
@@ -285,7 +288,11 @@ class Enemy {
     }
 
             draw(ctx) {
-                if (this.sprite && isValidImage(this.sprite.img || this.sprite)) {
+                if (!this.isHeavy && enemy1Img && enemy1Img.complete) {
+                    const enemyW = 220;
+                    const enemyH = 260;
+                    ctx.drawImage(enemy1Img, this.x - enemyW / 2, this.y - enemyH / 2, enemyW, enemyH);
+                } else if (this.sprite && isValidImage(this.sprite.img || this.sprite)) {
                     const meta = this.sprite.img ? this.sprite : { img: this.sprite, w: this.size, h: this.size };
                     const targetH = this.isHeavy ? 92 : 82;
                     const scale = targetH / meta.h;
