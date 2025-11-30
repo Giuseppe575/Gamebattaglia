@@ -303,8 +303,8 @@
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
-                        // soglia leggermente più bassa per non erodere il soldato
-                        if (r < 45 && g < 45 && b < 45) {
+                        // soglia ridotta per evitare trasparenze sul soldato
+                        if (r < 35 && g < 35 && b < 35) {
                             data[i + 3] = 0;
                         }
                     }
