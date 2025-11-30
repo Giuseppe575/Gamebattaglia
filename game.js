@@ -35,8 +35,9 @@
         const enemy1Img = new Image();
         enemy1Img.src = "assets/enemy1gif.gif";
         loadSprite('enemy2', 'assets/enemy2.png');
-        loadSprite('enemyA', 'assets/BE3A88FB-B8AD-4BB2-9860-AD27070A22A3.png');
-        loadSprite('enemyB', 'assets/E641B542-9B7C-4911-AA14-6D144B64BC78.png');
+        // [OLD] enemyA/B sprite (non più usati): BE3A88FB..., E641B542...
+        loadSprite('enemyA', 'assets/cuore.png');
+        loadSprite('enemyB', 'assets/moneta.png');
         loadSprite('sceneAtlas', 'scena.png'); // contiene i soldati di riferimento
 
         // Sprite giocatore
