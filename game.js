@@ -36,8 +36,10 @@
         enemy1Img.src = "assets/enemy1gif.gif";
         loadSprite('enemy2', 'assets/enemy2.png');
         // [OLD] enemyA/B sprite (non più usati): BE3A88FB..., E641B542...
-        loadSprite('enemyA', 'assets/cuore.png');
-        loadSprite('enemyB', 'assets/moneta.png');
+        const heartImg = new Image();
+        heartImg.src = 'assets/cuore.png';
+        const coinImg = new Image();
+        coinImg.src = 'assets/moneta.png';
         loadSprite('sceneAtlas', 'scena.png'); // contiene i soldati di riferimento
 
         // Sprite giocatore
@@ -267,7 +269,15 @@
 
                 const sprites = enemySprites.length
                     ? enemySprites
-                    : [images.enemyA, images.enemyB, enemy1Img, images.enemy2].filter(Boolean).map(img => ({ img, w: this.size, h: this.size }));
+                    : [
+                        heartImg.complete ? { img: heartImg, w: 64, h: 64 } : null,
+                        coinImg.complete ? { img: coinImg, w: 64, h: 64 } : null,
+                        enemy1Img,
+                        images.enemy2
+                    ].filter(Boolean).map(img => {
+                        if (img === enemy1Img || img === images.enemy2) return { img, w: this.size, h: this.size };
+                        return img;
+                    });
                 this.sprite = sprites.length ? sprites[Math.floor(Math.random() * sprites.length)] : null;
                 this.dead = false;
             }
@@ -313,10 +323,15 @@
                     ctx.drawImage(enemyCanvas, this.x - enemyW / 2, this.y - enemyH / 2, enemyW, enemyH);
                 } else if (this.sprite && isValidImage(this.sprite.img || this.sprite)) {
                     const meta = this.sprite.img ? this.sprite : { img: this.sprite, w: this.size, h: this.size };
-                    const targetH = this.isHeavy ? 92 : 82;
-                    const scale = targetH / meta.h;
-                    const targetW = meta.w * scale;
-                    ctx.drawImage(meta.img, this.x - targetW / 2, this.y - targetH / 2, targetW, targetH);
+                    // se è cuore o moneta, disegna a 64x64 fissi
+                    if (meta.img === heartImg || meta.img === coinImg) {
+                        ctx.drawImage(meta.img, this.x - 32, this.y - 32, 64, 64);
+                    } else {
+                        const targetH = this.isHeavy ? 92 : 82;
+                        const scale = targetH / meta.h;
+                        const targetW = meta.w * scale;
+                        ctx.drawImage(meta.img, this.x - targetW / 2, this.y - targetH / 2, targetW, targetH);
+                    }
                 } else {
                     // fallback quadrato
                     const half = this.size / 2;
